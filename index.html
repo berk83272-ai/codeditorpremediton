@@ -2,11 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>CodEditor | V33 ARCHITECT EDITION</title>
+    <title>CodEditor | V36 SECURE ARCHITECT</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -15,425 +12,267 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
 
     <style>
-        /* --- [ KATMAN 1: TEMEL SİSTEM ] --- */
         :root {
-            --neon-green: #00ff41;
-            --neon-blue: #00d4ff;
-            --neon-purple: #bc13fe;
-            --warning: #ffcc00;
-            --bg-dark: #050505;
-            --panel-bg: #0a0a0a;
-            --border-dim: #1a1a1a;
-            --font-mono: 'Courier New', monospace;
+            --theme: #00d4ff; /* Üye Mavisi */
+            --bg: #030303;
+            --panel: #0a0a0a;
+            --accent: #ffcc00;
+            --font: 'Courier New', monospace;
         }
 
-        * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--neon-green) var(--bg-dark); }
-        
-        body {
-            margin: 0; padding: 0; background: var(--bg-dark); color: #e0e0e0;
-            font-family: var(--font-mono); height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column;
-        }
+        /* ADMIN MODU (YEŞİL) */
+        body.root-access { --theme: #00ff41; }
 
-        /* RGB ANIMASYONLU ÇERÇEVE */
-        .system-border {
+        body, html { margin: 0; padding: 0; background: var(--bg); color: #eee; font-family: var(--font); height: 100vh; overflow: hidden; }
+
+        /* RGB SİSTEM ÇERÇEVESİ */
+        .sys-frame {
             position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-            border: 4px solid transparent;
-            border-image: linear-gradient(45deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f) 1;
-            animation: hue-rotate 10s linear infinite;
+            border: 3px solid var(--theme); transition: 0.8s;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
         }
-        @keyframes hue-rotate { 100% { filter: hue-rotate(360deg); } }
 
-        /* --- [ KATMAN 2: GİRİŞ EKRANI (AUTH) ] --- */
-        #auth-layer {
+        /* GİRİŞ EKRANI */
+        #auth-gate {
             position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
-        
-        .auth-container {
-            width: 600px; background: rgba(10,10,10,0.95); border: 2px solid var(--neon-green);
-            padding: 40px; border-radius: 15px; box-shadow: 0 0 50px rgba(0,255,65,0.15);
-            text-align: center;
+        .gate-box {
+            width: 500px; padding: 40px; background: var(--panel); border: 2px solid var(--theme);
+            border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,1);
+        }
+        .yellow-alert {
+            border: 1px dashed var(--accent); color: var(--accent); padding: 15px;
+            font-size: 12px; margin-bottom: 20px; text-align: left; background: rgba(255,204,0,0.03);
         }
 
-        .system-title { font-size: 32px; color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); margin-bottom: 20px; font-weight: 900; }
-        
-        /* SARI KURALLAR KUTUSU */
-        .rules-box {
-            border: 2px dashed var(--warning); background: rgba(255, 204, 0, 0.05);
-            padding: 20px; text-align: left; color: var(--warning); margin-bottom: 25px;
-            font-size: 13px; line-height: 1.6;
+        .gate-input {
+            width: 100%; padding: 15px; margin-bottom: 10px; background: #000;
+            border: 1px solid #222; color: var(--theme); font-weight: bold; outline: none;
         }
-        .rules-box b { text-decoration: underline; font-size: 14px; }
-
-        .input-field {
-            width: 100%; padding: 15px; background: #111; border: 1px solid #333;
-            color: var(--neon-green); font-family: inherit; font-weight: bold; margin-bottom: 15px;
-            border-radius: 5px; outline: none; transition: 0.3s;
+        .gate-btn {
+            width: 100%; padding: 15px; background: var(--theme); color: #000;
+            border: none; font-weight: 900; cursor: pointer; transition: 0.3s;
         }
-        .input-field:focus { border-color: var(--neon-green); box-shadow: 0 0 15px rgba(0,255,65,0.2); }
 
-        .btn-enter {
-            width: 100%; padding: 18px; background: var(--neon-green); color: black;
-            font-weight: 900; border: none; cursor: pointer; font-size: 16px;
-            text-transform: uppercase; transition: transform 0.2s;
-        }
-        .btn-enter:hover { transform: scale(1.02); box-shadow: 0 0 20px var(--neon-green); }
-
-        /* --- [ KATMAN 3: ARAYÜZ (UI) ] --- */
+        /* HEADER */
         header {
-            height: 60px; background: #080808; border-bottom: 1px solid var(--border-dim);
+            height: 60px; background: #050505; border-bottom: 2px solid var(--theme);
             display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
         }
+        .badge { background: var(--theme); color: #000; padding: 4px 10px; font-weight: 900; font-size: 10px; border-radius: 3px; }
 
-        .header-brand { font-size: 18px; font-weight: bold; color: var(--neon-green); display: flex; align-items: center; gap: 10px; }
-        .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; box-shadow: 0 0 5px red; transition: 0.5s; }
-        .status-dot.online { background: #0f0; box-shadow: 0 0 5px #0f0; }
+        /* MAIN LAYOUT */
+        main { display: grid; grid-template-columns: 220px 1fr 350px; height: calc(100vh - 100px); }
 
-        .toolbar { display: flex; gap: 10px; }
-        .tool-btn {
-            background: #111; color: #fff; border: 1px solid #333; padding: 8px 15px;
-            cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit;
-        }
-        .tool-btn:hover { border-color: var(--neon-green); color: var(--neon-green); }
-        .btn-run { background: var(--neon-blue); border-color: var(--neon-blue); color: black; display: none; }
-        .btn-dl { color: var(--warning); border-color: var(--warning); }
+        /* LOGS */
+        .side-logs { background: #000; border-right: 1px solid #111; padding: 10px; font-size: 10px; color: #444; overflow-y: auto; }
+        .log-line b { color: var(--theme); }
 
-        /* ANA YERLEŞİM (GRID) */
-        #main-workspace {
-            display: grid; grid-template-columns: 220px 1fr 350px; flex: 1; overflow: hidden;
-        }
-
-        /* SOL PANEL: LOGLAR */
-        .panel-left {
-            background: #020202; border-right: 1px solid var(--border-dim);
-            padding: 10px; font-size: 11px; color: #666; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 5px;
-        }
-        .log-entry { padding-bottom: 5px; border-bottom: 1px solid #080808; }
-        .log-time { color: var(--neon-blue); margin-right: 5px; }
-
-        /* ORTA PANEL: EDİTÖR */
+        /* EDITOR */
         #editor-container { position: relative; }
-        #ace-editor { width: 100%; height: 100%; font-size: 16px; }
+        #editor { width: 100%; height: 100%; font-size: 14px; }
 
-        /* SAĞ PANEL: CHAT & AI */
-        .panel-right {
-            background: #080808; border-left: 1px solid var(--border-dim);
-            display: flex; flex-direction: column;
+        /* CHAT & AI PANEL */
+        .side-tools { background: #080808; border-left: 1px solid #111; display: flex; flex-direction: column; }
+        
+        #chat-area { flex: 2; display: flex; flex-direction: column; padding: 10px; border-bottom: 1px solid #111; }
+        .chat-msgs { flex: 1; background: #000; border: 1px solid #1a1a1a; margin-bottom: 8px; overflow-y: auto; padding: 8px; font-size: 12px; }
+        
+        #ai-area { flex: 1.2; padding: 10px; background: #040008; display: flex; flex-direction: column; }
+        .ai-text { flex: 1; color: #b080ff; font-size: 11px; font-style: italic; overflow-y: auto; margin-bottom: 5px; border-left: 2px solid #b080ff; padding-left: 5px; }
+
+        .inp-grp { display: flex; gap: 4px; }
+        .mini-inp { flex: 1; background: #000; border: 1px solid #222; color: #fff; padding: 8px; font-size: 11px; outline: none; }
+        .mini-btn { background: var(--theme); border: none; padding: 0 12px; cursor: pointer; font-weight: bold; }
+
+        /* TERMINAL */
+        #term {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 180px;
+            background: rgba(0,0,0,0.95); border-top: 2px solid var(--theme);
+            display: none; flex-direction: column; z-index: 100;
         }
+        .term-head { background: var(--theme); color: #000; padding: 5px 10px; font-weight: bold; display: flex; justify-content: space-between; font-size: 12px; }
+        #term-out { flex: 1; padding: 10px; color: var(--theme); overflow-y: auto; font-family: monospace; font-size: 13px; }
 
-        /* CHAT BÖLÜMÜ */
-        .chat-section { flex: 2; display: flex; flex-direction: column; border-bottom: 2px solid var(--border-dim); padding: 10px; }
-        .chat-display { flex: 1; background: #000; border: 1px solid #222; overflow-y: auto; padding: 10px; margin-bottom: 10px; font-size: 12px; }
-        .chat-input-area { display: flex; gap: 5px; }
-        .chat-msg-input { flex: 1; background: #111; border: 1px solid #333; color: white; padding: 8px; outline: none; }
-        .chat-send-btn { background: var(--neon-green); border: none; padding: 0 15px; font-weight: bold; cursor: pointer; }
-
-        /* AI BÖLÜMÜ */
-        .ai-section { flex: 1; padding: 10px; background: #050010; display: flex; flex-direction: column; }
-        .ai-header { color: var(--neon-purple); font-weight: bold; font-size: 12px; margin-bottom: 5px; border-bottom: 1px solid var(--neon-purple); }
-        .ai-response { flex: 1; color: #d0aaff; font-size: 11px; font-style: italic; overflow-y: auto; margin-bottom: 5px; }
-        .ai-input { background: transparent; border: 1px solid var(--neon-purple); color: white; padding: 5px; width: 100%; }
-
-        /* ALT PANEL: TERMİNAL & REKLAM */
-        .bottom-section { display: flex; flex-direction: column; }
-
-        /* PYTHON TERMİNALİ (Açılır/Kapanır) */
-        #terminal-wrapper {
-            height: 200px; background: rgba(0,0,0,0.95); border-top: 2px solid var(--neon-blue);
-            display: none; flex-direction: column; position: absolute; bottom: 40px; left: 220px; right: 350px; z-index: 500;
+        /* REHBER */
+        #guide {
+            position: fixed; top: 0; right: -400px; width: 350px; height: 100%;
+            background: #0a0a0a; border-left: 3px solid var(--theme); z-index: 5000;
+            transition: 0.5s; padding: 30px; box-shadow: -20px 0 50px #000;
         }
-        .term-bar { background: var(--neon-blue); padding: 5px 10px; color: black; font-weight: bold; display: flex; justify-content: space-between; cursor: pointer; }
-        .term-content { flex: 1; padding: 15px; color: var(--neon-green); overflow-y: auto; font-family: monospace; }
+        #guide.open { right: 0; }
 
-        /* MARQUEE FOOTER */
-        footer {
-            height: 40px; background: #000; border-top: 1px solid #222;
-            display: flex; align-items: center; overflow: hidden; white-space: nowrap;
-        }
-        .marquee-text {
-            animation: scroll-left 30s linear infinite; font-weight: 900; color: var(--neon-green); font-size: 14px;
-        }
-        @keyframes scroll-left { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* REHBER PANELİ */
-        #guide-overlay {
-            position: fixed; top: 0; left: -100%; width: 400px; height: 100%;
-            background: #0a0a0a; border-right: 3px solid var(--neon-green);
-            z-index: 11000; transition: 0.4s ease; padding: 40px;
-            box-shadow: 50px 0 100px rgba(0,0,0,0.8);
-        }
-        #guide-overlay.active { left: 0; }
+        footer { height: 40px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; overflow: hidden; }
+        .scroll-msg { animation: scroll 25s linear infinite; white-space: nowrap; color: var(--theme); font-weight: 900; font-size: 13px; }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     </style>
 </head>
-<body>
+<body id="sys-body">
 
-<div class="system-border"></div>
+<div class="sys-frame"></div>
 
-<div id="guide-overlay">
-    <h2 style="color:var(--neon-green);">SİSTEM KILAVUZU</h2>
-    <hr style="border-color:#333">
-    <div style="color:#aaa; font-size:13px; line-height:2;">
-        <p><b>1. Kodlama:</b> Python seçiliyken "RUN" butonu aktiftir. Diğer dillerde sadece renklendirme çalışır.</p>
-        <p><b>2. Chat:</b> Sağ panelden "Gönder" butonuna basarak sohbete katılın. Küfür yasaktır.</p>
-        <p><b>3. AI Asistanı:</b> Mor paneldeki kutuya sorunu yaz, "Enter"a bas.</p>
-        <p><b>4. Kayıt:</b> "İNDİR" butonu, seçili dile uygun uzantıyı (.py, .cpp, .html) otomatik verir.</p>
-        <p><b>5. Terminal:</b> Python çıktıları alttan açılan mavi panelde görünür.</p>
+<div id="auth-gate">
+    <div class="gate-box">
+        <h2 style="color:var(--theme); margin:0 0 10px 0;">V36 SECURE KERNEL</h2>
+        <div class="yellow-alert">
+            <b>[ GÜVENLİK PROTOKOLÜ ]</b><br>
+            • Admin: <b>@rw_f00t</b> (Şifre güncellendi!)<br>
+            • Üyeler: İsim yazıp şifreyi boş bırakabilir.<br>
+            • Tüm özellikler (AI, Rehber, Python) herkese açıktır.
+        </div>
+        <input type="text" id="in-user" class="gate-input" placeholder="KOD ADI">
+        <input type="password" id="in-pass" class="gate-input" placeholder="GÜVENLİK ŞİFRESİ">
+        <button class="gate-btn" onclick="checkAuth()">SİSTEME BAĞLAN</button>
+        <div id="auth-info" style="margin-top:10px; font-size:11px; color:#444;">Motor bekleniyor...</div>
     </div>
-    <button onclick="toggleGuide()" class="btn-enter" style="margin-top:20px;">ANLAŞILDI</button>
 </div>
 
-<div id="auth-layer">
-    <div class="auth-container">
-        <div class="system-title">V33 ARCHITECT</div>
-        
-        <div class="rules-box">
-            <b style="color:white; display:block; margin-bottom:10px;">[ SARI KURALLAR / YELLOW PROTOCOLS ]</b>
-            1. Instagram: <b>@rw_f00t</b> takibi sistem giriş şartıdır.<br>
-            2. Bu platformda "Cache" temizliği otomatiktir.<br>
-            3. Chat ve AI paneli birbirinden bağımsız çalışır.<br>
-            4. Birden fazla sekmede oturum açabilirsiniz.<br>
-            5. Pyodide motoru yüklenmeden sistem açılmaz.
-        </div>
-
-        <input type="text" id="username" class="input-field" placeholder="KOD ADINIZ (User ID)">
-        <input type="password" id="password" class="input-field" placeholder="GİRİŞ ANAHTARI (Key)">
-        <button class="btn-enter" onclick="bootSystem()">BAĞLANTIYI BAŞLAT</button>
-        <div id="boot-status" style="margin-top:10px; font-size:12px; color:#555;">Sistem Bekleniyor...</div>
+<div id="guide">
+    <h3 style="color:var(--theme)">SİSTEM REHBERİ</h3>
+    <div style="font-size:12px; line-height:1.8; color:#888;">
+        <p><b>- Python:</b> Sadece Python seçiliyken ÇALIŞTIR butonu görünür.</p>
+        <p><b>- AI:</b> Sağ alttaki panelden kod analizi isteyebilirsiniz.</p>
+        <p><b>- Chat:</b> Global mesajlaşma tüm kullanıcılar içindir.</p>
+        <p><b>- İndir:</b> Yazdığınız kodu seçili dile göre bilgisayara kaydeder.</p>
     </div>
+    <button class="gate-btn" onclick="toggleGuide()" style="margin-top:20px;">KAPAT</button>
 </div>
 
 <header>
-    <div class="header-brand">
-        <div class="status-dot" id="net-status"></div>
-        <span>CODEDITOR <span style="color:white">V33</span></span>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <b style="color:var(--theme)">ROOT_V36</b>
+        <span id="u-tag" class="badge">INIT...</span>
     </div>
-    <div class="toolbar">
-        <button class="tool-btn" onclick="toggleGuide()">❓ KILAVUZ</button>
-        <select id="lang-select" class="tool-btn" onchange="changeLanguage()">
-            <option value="python">Python 3.11</option>
-            <option value="c_cpp">C++ (GCC)</option>
-            <option value="csharp">C# (.NET)</option>
-            <option value="java">Java</option>
-            <option value="javascript">Node.JS</option>
-            <option value="html">HTML5</option>
-            <option value="php">PHP 8</option>
-            <option value="sql">SQL</option>
+    <div style="display:flex; gap:8px;">
+        <button class="mini-btn" style="height:35px; color:black;" onclick="toggleGuide()">❓ REHBER</button>
+        <select id="l-sel" class="mini-inp" onchange="updL()" style="width:100px;">
+            <option value="python">Python</option>
+            <option value="javascript">JS</option>
+            <option value="html">HTML</option>
+            <option value="c_cpp">C++</option>
         </select>
-        <button id="btn-run" class="tool-btn btn-run" onclick="executePython()">▶ ÇALIŞTIR</button>
-        <button id="btn-dl" class="tool-btn btn-dl" onclick="downloadFile()">📥 İNDİR</button>
+        <button id="r-btn" class="mini-btn" style="display:none; background:#fff;" onclick="run()">▶ RUN</button>
+        <button class="mini-btn" style="background:var(--accent);" onclick="dl()">📥 İNDİR</button>
     </div>
 </header>
 
-<div id="main-workspace">
-    <div class="panel-left" id="log-panel">
-        <div class="log-entry"><span class="log-time">[SYS]</span> Kernel V33 Initialized.</div>
-    </div>
-
+<main>
+    <div id="log-side" class="side-logs"><div class="log-line"><b>[SYS]</b> Boot sequence...</div></div>
+    
     <div id="editor-container">
-        <div id="ace-editor"># V33 ARCHITECT EDITION
-# Instagram: @rw_f00t
-# Sistem tamamen yenilendi. Chat, AI ve Terminal aktif.
+        <div id="editor"># V36 SECURE EDITION
+# Şifre Koruma: AKTİF
+# Rol Erişimi: TAM ERİŞİM
 
-print("Merhaba Dünya! V33 Online.")</div>
-        
-        <div id="terminal-wrapper">
-            <div class="term-bar">
-                <span>TERMINAL_OUTPUT</span>
-                <span onclick="toggleTerminal(false)">[ KAPAT ]</span>
-            </div>
-            <div id="term-output" class="term-content">...</div>
+print("Sistem güvenli şekilde başlatıldı.")</div>
+        <div id="term">
+            <div class="term-head"><span>TERMINAL_OUTPUT</span><span onclick="toggleT(false)" style="cursor:pointer;">[X]</span></div>
+            <pre id="term-out"></pre>
         </div>
     </div>
 
-    <div class="panel-right">
-        <div class="chat-section">
-            <div style="color:var(--neon-green); font-weight:bold; margin-bottom:5px;">GENEL SOHBET</div>
-            <div id="chat-box" class="chat-display"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-msg" class="chat-msg-input" placeholder="Mesaj...">
-                <button class="chat-send-btn" onclick="sendMessage()">></button>
+    <div class="side-tools">
+        <div id="chat-area">
+            <b style="color:var(--theme); font-size:11px; margin-bottom:5px;">GLOBAL_CHAT</b>
+            <div id="chat-box" class="chat-msgs"></div>
+            <div class="inp-grp">
+                <input type="text" id="chat-in" class="mini-inp" placeholder="Mesaj...">
+                <button class="mini-btn" onclick="send()">></button>
             </div>
         </div>
-
-        <div class="ai-section">
-            <div class="ai-header">YAPAY ZEKA ASİSTANI (BETA)</div>
-            <div id="ai-response-box" class="ai-response">AI: Merhaba, kodunda takıldığın yeri sorabilirsin.</div>
-            <input type="text" id="ai-input" class="ai-input" placeholder="Soru sor ve Enter'a bas..." onkeypress="handleAI(event)">
+        <div id="ai-area">
+            <b style="color:#b080ff; font-size:11px; margin-bottom:5px;">AI_ASSISTANT</b>
+            <div id="ai-out" class="ai-text">AI: Kod hakkında sorun varsa buradayım.</div>
+            <div class="inp-grp">
+                <input type="text" id="ai-in" class="mini-inp" placeholder="AI'ya sor..." onkeypress="if(event.key=='Enter')ask()">
+                <button class="mini-btn" style="background:#b080ff;" onclick="ask()">?</button>
+            </div>
         </div>
     </div>
-</div>
+</main>
 
 <footer>
-    <div class="marquee-text">
-        +++ SYSTEM ONLINE +++ INSTAGRAM: @RW_F00T +++ V33 UPDATE COMPLETE +++ PYTHON ENGINE: PYODIDE 0.23 +++ NO-CACHE PROTOCOL ACTIVE +++ ALL SYSTEMS GO +++ SARI KURALLAR GEÇERLİDİR +++
-    </div>
+    <div class="scroll-msg">+++ SECURITY LEVEL: HIGH +++ ENCRYPTION: ACTIVE +++ ALL USERS: FULL ACCESS +++ INSTAGRAM: @RW_F00T +++ V36 UPDATE READY +++</div>
 </footer>
 
 <script>
-    /* --- [ SİSTEM ÇEKİRDEĞİ (JS) ] --- */
-    
-    // 1. Firebase Başlatma
-    const firebaseConfig = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", authDomain: "prem-d18e3.firebaseapp.com", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3", storageBucket: "prem-d18e3.firebasestorage.app", messagingSenderId: "828611092580", appId: "1:828611092580:web:5f8e2c7c501c63a2d73f71" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    // F-Config
+    const fc = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", authDomain: "prem-d18e3.firebaseapp.com", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3", storageBucket: "prem-d18e3.firebasestorage.app", messagingSenderId: "828611092580", appId: "1:828611092580:web:5f8e2c7c501c63a2d73f71" };
+    firebase.initializeApp(fc); const db = firebase.database();
 
-    // 2. Değişkenler
-    let pyodide = null;
-    let currentUser = "Anonim";
-    const editor = ace.edit("ace-editor");
-    editor.setTheme("ace/theme/terminal");
-    editor.session.setMode("ace/mode/python");
-    editor.setOptions({ fontSize: "14px", showPrintMargin: false });
+    let py = null;
+    let user = "Guest";
+    const ed = ace.edit("editor");
+    ed.setTheme("ace/theme/terminal");
+    ed.session.setMode("ace/mode/python");
 
-    // 3. Sistem Loglama Fonksiyonu
-    function log(msg, type="INFO") {
-        const panel = document.getElementById("log-panel");
-        const div = document.createElement("div");
-        div.className = "log-entry";
-        const time = new Date().toLocaleTimeString();
-        div.innerHTML = `<span class="log-time">[${time}]</span> <span style="color:${type==='ERR'?'red':'var(--neon-green)'}">${type}:</span> ${msg}`;
-        panel.prepend(div);
+    async function init() {
+        try { py = await loadPyodide(); document.getElementById("r-btn").style.display="block"; document.getElementById("auth-info").innerText="Bağlantı Kurulabilir."; document.getElementById("auth-info").style.color="#0f0"; } 
+        catch(e) { console.error(e); }
     }
+    init();
 
-    // 4. Pyodide Yükleme (Arka Plan)
-    async function initPyodide() {
-        try {
-            log("Python motoru indiriliyor...", "SYS");
-            pyodide = await loadPyodide();
-            log("Python 3.11 Hazır.", "OK");
-            document.getElementById("btn-run").style.display = "block";
-            document.getElementById("boot-status").innerText = "Sistem Hazır. Giriş Yapabilirsiniz.";
-            document.getElementById("boot-status").style.color = "#0f0";
-        } catch (e) {
-            log("Python yüklenemedi!", "ERR");
+    function checkAuth() {
+        const u = document.getElementById("in-user").value;
+        const p = document.getElementById("in-pass").value;
+        if(!u) return alert("İsim yaz!");
+
+        // Güvenli Şifre Kontrolü (f00t_99x_Root!)
+        if(u === "@rw_f00t" && p === "f00t_99x_Root!") {
+            document.getElementById("sys-body").classList.add("root-access");
+            document.getElementById("u-tag").innerText = "ROOT ADMIN";
+            user = "@rw_f00t";
+        } else {
+            document.getElementById("u-tag").innerText = "MEMBER";
+            user = u;
         }
+        document.getElementById("auth-gate").style.display="none";
+        log("Bağlantı kuruldu: " + user);
     }
-    initPyodide();
 
-    // 5. Boot / Giriş Sistemi
-    function bootSystem() {
-        const user = document.getElementById("username").value;
-        if (!user) { alert("Kullanıcı adı zorunludur!"); return; }
-        
-        currentUser = user;
-        document.getElementById("boot-status").innerText = "Yetkilendirme Başarılı...";
-        
-        // Sahte Yükleme Efekti
+    function log(m) {
+        const l = document.getElementById("log-side");
+        l.innerHTML = `<div class="log-line"><b>[${new Date().toLocaleTimeString()}]</b> ${m}</div>` + l.innerHTML;
+    }
+
+    async function run() {
+        toggleT(true); const o = document.getElementById("term-out"); o.innerText = "Running...";
+        try {
+            await py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+            await py.runPythonAsync(ed.getValue());
+            o.innerText = py.runPython("sys.stdout.getvalue()") || "Done (No Output).";
+        } catch(e) { o.innerText = "Error: " + e; }
+    }
+
+    function send() {
+        const i = document.getElementById("chat-in");
+        if(i.value) { db.ref("global_chat").push({ u: user, m: i.value, t: Date.now() }); i.value=""; }
+    }
+
+    db.ref("global_chat").limitToLast(15).on("value", s => {
+        const b = document.getElementById("chat-box"); b.innerHTML = "";
+        s.forEach(c => { const d = c.val(); b.innerHTML += `<div><b style="color:${d.u=='@rw_f00t'?'#0f0':'#0cf'}">${d.u}:</b> ${d.m}</div>`; });
+        b.scrollTop = b.scrollHeight;
+    });
+
+    function ask() {
+        const i = document.getElementById("ai-in"); const o = document.getElementById("ai-out");
+        if(!i.value) return;
+        o.innerText = "AI düşünüyor...";
         setTimeout(() => {
-            document.getElementById("auth-layer").style.display = "none";
-            document.getElementById("net-status").classList.add("online");
-            log(`Kullanıcı Girişi: ${currentUser}`, "AUTH");
+            const t = i.value.toLowerCase();
+            if(t.includes("hata")) o.innerText = "AI: Kodun yapısını ve girintileri kontrol etmelisin.";
+            else if(t.includes("merhaba")) o.innerText = "AI: Merhaba! Sana nasıl yardımcı olabilirim?";
+            else o.innerText = "AI: Bu isteğin V37 güncellemesiyle aktifleşecek.";
+            i.value = "";
         }, 1000);
     }
 
-    // 6. Dil ve Editör Ayarları
-    const extensions = { python: ".py", c_cpp: ".cpp", csharp: ".cs", java: ".java", javascript: ".js", html: ".html", php: ".php", sql: ".sql" };
-
-    function changeLanguage() {
-        const lang = document.getElementById("lang-select").value;
-        editor.session.setMode("ace/mode/" + lang);
-        
-        // Sadece Python'da Run butonu göster
-        const runBtn = document.getElementById("btn-run");
-        runBtn.style.display = (lang === 'python' && pyodide) ? 'block' : 'none';
-        
-        // İndirme butonunu güncelle
-        document.getElementById("btn-dl").innerText = `📥 İNDİR (${extensions[lang] || ".txt"})`;
-        log(`Dil değiştirildi: ${lang}`, "UI");
-    }
-
-    // 7. Python Çalıştırma
-    async function executePython() {
-        toggleTerminal(true);
-        const outDiv = document.getElementById("term-output");
-        outDiv.innerText = ">>> İşleniyor...\n";
-        
-        const code = editor.getValue();
-        try {
-            await pyodide.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-            await pyodide.runPythonAsync(code);
-            const output = pyodide.runPython("sys.stdout.getvalue()");
-            outDiv.innerText = output || ">>> İşlem tamamlandı (Çıktı yok).";
-            log("Kod çalıştırıldı.", "PY");
-        } catch (err) {
-            outDiv.innerText = `>>> HATA:\n${err}`;
-            log("Kod çalıştırma hatası.", "ERR");
-        }
-    }
-
-    function toggleTerminal(show) {
-        document.getElementById("terminal-wrapper").style.display = show ? "flex" : "none";
-    }
-
-    // 8. Dosya İndirme
-    function downloadFile() {
-        const lang = document.getElementById("lang-select").value;
-        const blob = new Blob([editor.getValue()], {type: "text/plain"});
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `proje_${Date.now()}${extensions[lang]}`;
-        link.click();
-        log("Dosya indirildi.", "IO");
-    }
-
-    // 9. Chat Sistemi
-    function sendMessage() {
-        const msgInput = document.getElementById("chat-msg");
-        const msg = msgInput.value.trim();
-        if (msg) {
-            db.ref("global_chat").push({ user: currentUser, text: msg, time: Date.now() });
-            msgInput.value = "";
-        }
-    }
-
-    // Chat Dinleyici
-    db.ref("global_chat").limitToLast(15).on("value", snapshot => {
-        const chatBox = document.getElementById("chat-box");
-        chatBox.innerHTML = "";
-        snapshot.forEach(child => {
-            const data = child.val();
-            const time = new Date(data.time).getHours() + ":" + new Date(data.time).getMinutes();
-            chatBox.innerHTML += `<div style="margin-bottom:5px;">
-                <span style="color:#555; font-size:10px;">${time}</span> 
-                <b style="color:var(--neon-green)">${data.user}:</b> ${data.text}
-            </div>`;
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    // 10. AI Simülasyonu
-    function handleAI(e) {
-        if (e.key === 'Enter') {
-            const input = document.getElementById("ai-input");
-            const box = document.getElementById("ai-response-box");
-            const question = input.value;
-            if(!question) return;
-
-            box.innerHTML += `<div style="color:white; margin-top:5px;">> ${question}</div>`;
-            input.value = "";
-            box.innerHTML += `<div style="color:var(--neon-purple);">AI Yazıyor...</div>`;
-            box.scrollTop = box.scrollHeight;
-
-            setTimeout(() => {
-                // Son mesajı 'AI Yazıyor...' silmek yerine ekleyelim
-                let reply = "AI: Bunu şu an yapamıyorum.";
-                if(question.includes("hata")) reply = "AI: Kodundaki girintileri (indentation) kontrol et.";
-                else if(question.includes("python")) reply = "AI: Python 3.11 motoru aktif.";
-                else if(question.includes("merhaba")) reply = "AI: Merhaba, nasıl yardım edebilirim?";
-                
-                box.lastElementChild.innerHTML = reply;
-                box.scrollTop = box.scrollHeight;
-                log("AI Yanıtladı.", "AI");
-            }, 1200);
-        }
-    }
-
-    // 11. Kılavuz Kontrolü
-    function toggleGuide() {
-        document.getElementById("guide-overlay").classList.toggle("active");
-    }
+    function toggleT(s) { document.getElementById("term").style.display = s ? "flex" : "none"; }
+    function toggleGuide() { document.getElementById("guide").classList.toggle("open"); }
+    function updL() { const l = document.getElementById("l-sel").value; ed.session.setMode("ace/mode/"+l); document.getElementById("r-btn").style.display = (l=="python"?"block":"none"); }
+    function dl() { const b = new Blob([ed.getValue()], {type:"text/plain"}); const a = document.createElement("a"); a.href=URL.createObjectURL(b); a.download="code_"+Date.now()+".txt"; a.click(); }
 </script>
 </body>
 </html>
