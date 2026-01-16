@@ -2,13 +2,14 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>CodEditor | ULTRA MASTER V21</title>
+    <title>CodEditor | ULTRA MASTER V22 - PYTHON</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ext-language_tools.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
-        :root { --accent: #00ff41; --bg: #000; --owner: #ff00c8; --member: #00d4ff; --warn: #ffcc00; --error: #ff4444; --panel-bg: #0a0a0a; --sys: #ffff00; --ai-bg: #0e1217; }
+        :root { --accent: #00ff41; --bg: #000; --owner: #ff00c8; --member: #00d4ff; --warn: #ffcc00; --error: #ff4444; --panel-bg: #0a0a0a; --sys: #ffff00; --ai-bg: #0e1217; --py-blue: #3776ab; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         body::before { content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none; border: 2px solid; border-image: linear-gradient(90deg, #f00, #48ff00, #002bff, #ff00c8) 1; animation: borderRotate 8s linear infinite; }
         @keyframes borderRotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
@@ -16,6 +17,11 @@
         .shake { animation: shake 0.5s infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 50% { transform: translate(-3px, 0px) rotate(1deg); } 100% { transform: translate(1px, -1px) rotate(0deg); } }
         .invert { filter: invert(1) hue-rotate(180deg); }
+
+        /* PYTHON TERMINAL */
+        #python-console { position: absolute; bottom: 60px; left: 350px; width: 500px; height: 250px; background: rgba(5,5,5,0.95); border: 2px solid var(--py-blue); border-radius: 10px; z-index: 3000; display: none; flex-direction: column; box-shadow: 0 0 25px rgba(55, 118, 171, 0.5); }
+        #py-header { background: var(--py-blue); color: white; padding: 8px 15px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; border-radius: 8px 8px 0 0; }
+        #py-output { flex: 1; overflow-y: auto; padding: 15px; font-size: 12px; color: #00ff00; white-space: pre-wrap; font-family: 'Consolas', monospace; }
 
         /* REHBER PANELİ STİLLERİ */
         #guide-panel { position: fixed; left: -300px; top: 0; width: 280px; height: 100%; background: #080808; border-right: 2px solid var(--accent); z-index: 5000; transition: 0.4s; padding: 20px; overflow-y: auto; }
@@ -34,7 +40,6 @@
         .auth-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .reg-btn { background: #222; color: white; border: 1px solid var(--accent); }
         .log-btn { background: var(--accent); color: black; }
-        .sub-lang { display: block; font-size: 9px; opacity: 0.7; font-weight: normal; }
 
         header { padding: 12px 25px; background: #080808; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
         #main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
@@ -42,17 +47,18 @@
         #sidebar { width: 320px; background: #050505; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; padding: 15px; }
         #chat-box { flex: 1; overflow-y: auto; font-size: 11px; margin-bottom: 10px; padding: 10px; background: #020202; border-radius: 10px; border: 1px solid #111; }
 
+        .run-btn { background: var(--py-blue); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; display: none; align-items: center; gap: 5px; }
+        .run-btn:hover { background: #4b8bbe; }
+
         #ai-assistant { position: absolute; left: 50px; top: 100px; width: 300px; background: var(--ai-bg); border: 1px solid var(--member); border-radius: 12px; display: flex; flex-direction: column; z-index: 2000; box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
         #ai-drag { background: var(--member); color: #000; padding: 10px; font-weight: bold; font-size: 11px; border-radius: 11px 11px 0 0; cursor: move; }
         #ai-body { height: 300px; display: flex; flex-direction: column; }
         #ai-content { flex: 1; overflow-y: auto; padding: 10px; font-size: 11px; color: #ccc; }
         #ai-query { width: 100%; background: transparent; border: none; border-top: 1px solid #222; color: #fff; padding: 12px; outline: none; }
-        
+
         #owner-panel { position: fixed; right: -850px; top: 0; width: 800px; height: 100%; background: var(--panel-bg); z-index: 10001; transition: 0.5s; padding: 30px; overflow-y: auto; border-left: 3px solid var(--owner); }
         .panel-section { background: #111; padding: 20px; margin-bottom: 20px; border-radius: 12px; border: 1px solid #222; }
         .op-btn { background: #1a1a1a; border: 1px solid #333; color: #aaa; padding: 10px; font-size: 10px; cursor: pointer; border-radius: 6px; width: 100%; margin-top: 5px; font-weight: bold; }
-        .user-card { background: #080808; border: 1px solid #333; padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 5px; font-size: 12px; display: flex; justify-content: space-between; }
-        .ghost-screen { height: 180px; background: #000; border: 1px solid var(--accent); color: var(--accent); padding: 10px; font-size: 11px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px; }
         
         .rgb-marquee { background: #050505; border-top: 1px solid #1a1a1a; height: 35px; display: flex; align-items: center; overflow: hidden; }
         #marquee-wrap { display: flex; white-space: nowrap; animation: marquee-flow 25s linear infinite; }
@@ -68,92 +74,68 @@
 <div id="guide-panel">
     <button class="guide-btn-toggle" onclick="toggleGuide()">REHBER / GUIDE</button>
     <h3 style="color:var(--accent); text-align:center;">DİL REHBERİ</h3>
-    
     <div class="guide-item">
-        <h4>PYTHON</h4>
-        Basit ve güçlü. Ekrana yazı:<br>
+        <h4>PYTHON (V22)</h4>
+        Python motoru aktif! Yazıp 'Çalıştır'a bas:<br>
         <code>print("Selam Dünya")</code>
-        Değişken tanımlama:<br>
-        <code>sayi = 10</code>
     </div>
-
-    <div class="guide-item">
-        <h4>C++</h4>
-        Hız için idealdir:<br>
-        <code>#include &lt;iostream&gt;</code>
-        <code>int main() { ... }</code>
-    </div>
-
-    <div class="guide-item">
-        <h4>CSS</h4>
-        Tasarım dilidir:<br>
-        <code>body { background: #000; }</code>
-        <code>.yazi { color: red; }</code>
-    </div>
-
     <div class="guide-item">
         <h4>JAVASCRIPT</h4>
         Web işlevselliği:<br>
-        <code>alert("Sistem Aktif!");</code>
         <code>console.log("Log");</code>
     </div>
+</div>
 
-    <div class="guide-item">
-        <h4>SİSTEM NOTU</h4>
-        Kodunuzu sağ üstten dile göre ayarlamayı unutmayın!
-    </div>
+<div id="python-console">
+    <div id="py-header"><span>PYTHON OUTPUT (TERMINAL)</span><span onclick="closePy()" style="cursor:pointer;">[X]</span></div>
+    <div id="py-output">Python yükleniyor... (Loading...)</div>
 </div>
 
 <div id="auth-screen">
     <div class="auth-box">
-        <div style="color:var(--accent); margin-bottom:15px; font-weight:bold; font-size: 24px;">[ PREM_EDITION ]</div>
+        <div style="color:var(--accent); margin-bottom:15px; font-weight:bold; font-size: 24px;">[ PREM_V22_PYTHON ]</div>
         <div class="system-warning">
             <b style="color:var(--warn)">[ SARI KURALLAR / YELLOW RULES ]</b><br><br>
             • Instagram: <b>@rw_f00t</b><br>
-            • <b>Aynı kullanıcı adıyla farklı hesaplar açılabilir.</b><br>
-            <span class="sub-lang">(Multiple accounts can be created with the same username.)</span><br>
-            • <b>Chat 10 dakikada bir resetlenir.</b><br>
-            <span class="sub-lang">(Chat resets every 10 minutes.)</span><br>
-            • <b>Dosya Dışa Aktarma Sistemi Eklendi.</b><br>
-            <span class="sub-lang">(File Export System Added.)</span>
+            • <b>Python Kod Çalıştırma Motoru Eklendi.</b><br>
+            <span class="sub-lang">(Python Execution Engine Added.)</span><br>
+            • <b>Chat 10 dakikada bir resetlenir.</b>
         </div>
         <input type="text" id="user-name" placeholder="KULLANICI ADI (USERNAME)">
         <input type="password" id="user-pass" placeholder="ŞİFRE (PASSWORD)">
         <div class="btn-row">
-            <button class="auth-btn reg-btn" onclick="handleAuth('register')">HESAP KUR<br><span style="font-size:8px">CREATE ACCOUNT</span></button>
-            <button class="auth-btn log-btn" onclick="handleAuth('login')">GİRİŞ YAP<br><span style="font-size:8px">LOGIN</span></button>
+            <button class="auth-btn reg-btn" onclick="handleAuth('register')">HESAP KUR</button>
+            <button class="auth-btn log-btn" onclick="handleAuth('login')">GİRİŞ YAP</button>
         </div>
     </div>
 </div>
 
 <header>
-    <div style="color:var(--accent); font-weight:bold; font-size:18px;">> KERNEL_ULTRA_V21</div>
+    <div style="color:var(--accent); font-weight:bold; font-size:18px;">> KERNEL_V22_PYTHON</div>
     <div style="display: flex; gap: 10px; align-items: center;">
-        <button class="export-btn" onclick="exportFile()">DOSYAYI İNDİR<br><span style="font-size:8px">DOWNLOAD FILE</span></button>
+        <button id="run-py-btn" class="run-btn" onclick="runPython()">▶ KODU ÇALIŞTIR (RUN)</button>
+        <button class="export-btn" onclick="exportFile()">İNDİR</button>
         <select id="lang-select" onchange="changeLanguage()" style="background:#000; color:var(--accent); border:1px solid var(--accent); border-radius:5px; padding: 5px;">
             <option value="python">Python</option>
-            <option value="c_cpp">C++</option>
-            <option value="csharp">C#</option>
-            <option value="java">Java</option>
             <option value="javascript">JavaScript</option>
             <option value="html">HTML</option>
             <option value="css">CSS</option>
-            <option value="php">PHP</option>
-            <option value="sql">SQL</option>
-            <option value="json">JSON</option>
         </select>
-        <button id="owner-btn" style="display:none; background:var(--owner); color:white; border:none; padding:8px 18px; cursor:pointer; border-radius:20px; font-weight:bold;" onclick="togglePanel()">KOMUTA MERKEZİ<br><span style="font-size:8px">COMMAND CENTER</span></button>
+        <button id="owner-btn" style="display:none; background:var(--owner); color:white; border:none; padding:8px 18px; cursor:pointer; border-radius:20px; font-weight:bold;" onclick="togglePanel()">KOMUTA MERKEZİ</button>
     </div>
 </header>
 
 <div id="main-container">
-    <div id="editor"># V21 GitHub Ready. Kontrol sizde. / You are in control.</div>
+    <div id="editor">print("Merhaba Berk! Python artik burada aktif.")
+sayi1 = 10
+sayi2 = 20
+print(f"Toplam: {sayi1 + sayi2}")</div>
 
     <div id="ai-assistant">
-        <div id="ai-drag">SMART AI ASİSTAN (ASSISTANT)</div>
+        <div id="ai-drag">SMART AI ASİSTAN</div>
         <div id="ai-body">
-            <div id="ai-content"><div><b>AI:</b> Selam, sistemler hazır! / Hi, systems are ready!</div></div>
-            <input type="text" id="ai-query" placeholder="Mesaj yaz... (Type a message...)" onkeypress="handleAI(event)">
+            <div id="ai-content"><div><b>AI:</b> Python motoru ve terminal hazır!</div></div>
+            <input type="text" id="ai-query" placeholder="Mesaj yaz..." onkeypress="handleAI(event)">
         </div>
     </div>
 
@@ -164,35 +146,17 @@
 </div>
 
 <div id="owner-panel">
-    <h2 style="color:var(--owner); text-align:center;">KOMUTA MERKEZİ<br><span style="font-size:12px">COMMAND CENTER</span></h2>
-    <div class="panel-section" style="border-color: var(--sys);">
-        <b style="color: var(--sys);">CHAT KONTROL (CHAT CONTROL)</b>
-        <div style="margin: 10px 0; font-size: 12px;">OTO RESET (AUTO): <span id="reset-timer" style="color:var(--error); font-weight:bold;">600</span>s</div>
-        <button class="op-btn" style="background:var(--error); color:white; border:none;" onclick="resetChatHistory()">CHATI SIFIRLA (RESET CHAT)</button>
+    <h2 style="color:var(--owner); text-align:center;">KOMUTA MERKEZİ</h2>
+    <div class="panel-section">
+        <b style="color: var(--sys);">CHAT KONTROL</b>
+        <div style="margin: 10px 0; font-size: 12px;">OTO RESET: <span id="reset-timer" style="color:var(--error); font-weight:bold;">600</span>s</div>
+        <button class="op-btn" style="background:var(--error); color:white; border:none;" onclick="resetChatHistory()">CHATI SIFIRLA</button>
     </div>
     <div class="panel-section">
-        <b style="color:var(--accent)">MARQUEE / REKLAM (ADS)</b>
-        <input type="text" id="marquee-input" style="width:100%; padding:10px; background:#000; border:1px solid var(--accent); color:var(--accent); margin-top:5px;">
-        <div style="display:flex; gap:10px; margin-top:5px;">
-            <button class="op-btn" onclick="updateMarquee()">GÜNCELLE (UPDATE)</button>
-            <button class="op-btn" onclick="resetMarquee()">SIFIRLA (RESET)</button>
-        </div>
+        <b>ÜYELER (MEMBERS)</b>
+        <div id="user-list"></div>
     </div>
-    <div class="panel-section">
-        <div style="display:flex; justify-content: space-between;">
-            <b>HEDEF (TARGET): <span id="target-name-view" style="color:var(--member)">NONE</span></b>
-            <div>ŞİFRE (PASS): <span id="target-pass-view" style="color:var(--warn)">****</span> <span onclick="togglePassView()" style="cursor:pointer;">👁️</span></div>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-            <button class="op-btn" style="background:var(--error); color:white;" onclick="adminDeleteAccount()">SİL (DELETE)</button>
-            <button class="op-btn" style="background:var(--sys); color:black;" onclick="sendPersonalAlert()">MSJ (MSG)</button>
-            <button class="op-btn" onclick="trollCommand('shake')">SİSTEM-X1</button>
-            <button class="op-btn" onclick="trollCommand('invert')">SİSTEM-X2</button>
-        </div>
-    </div>
-    <div class="panel-section"><b>GHOST VIEW (LIVE)</b><div id="ghost-view" class="ghost-screen"></div></div>
-    <div class="panel-section"><b>ÜYELER (MEMBERS)</b><div id="user-list"></div></div>
-    <button onclick="togglePanel()" style="width:100%; padding:15px; background:#222; color:white; border:none; cursor:pointer;">PANELİ KAPAT (CLOSE PANEL)</button>
+    <button onclick="togglePanel()" style="width:100%; padding:15px; background:#222; color:white; border:none; cursor:pointer;">PANELİ KAPAT</button>
 </div>
 
 <div class="rgb-marquee"><div id="marquee-wrap"></div></div>
@@ -202,29 +166,43 @@
     firebase.initializeApp(firebaseConfig); const db = firebase.database(); 
     const MASTER_KEY = "P9$mR@26!Xz#Q7_vK1*Lp-99";
     
-    let user = ""; let isAdmin = false; let targetHash = ""; let rawPass = ""; let isPassVisible = false; let resetCount = 600; let myHash = "";
+    let user = ""; let isAdmin = false; let myHash = ""; let pyodideInstance = null;
 
-    function toggleGuide() { document.getElementById('guide-panel').classList.toggle('open'); }
+    // PYTHON ENGINE
+    async function initPython() {
+        pyodideInstance = await loadPyodide();
+        document.getElementById("py-output").innerText = "Python Hazır! (Python Ready)\n";
+        document.getElementById("run-py-btn").style.display = "flex";
+    }
+    initPython();
 
-    function exportFile() {
-        const text = editor.getValue();
-        const blob = new Blob([text], { type: "text/plain" });
-        const anchor = document.createElement("a");
-        anchor.download = "code_export.txt";
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.click();
+    async function runPython() {
+        const outputDiv = document.getElementById("py-output");
+        document.getElementById("python-console").style.display = "flex";
+        outputDiv.innerText = "Kod çalıştırılıyor... (Running...)\n";
+        try {
+            const code = editor.getValue();
+            await pyodideInstance.runPythonAsync(`
+                import sys
+                import io
+                sys.stdout = io.StringIO()
+            `);
+            await pyodideInstance.runPythonAsync(code);
+            const stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
+            outputDiv.innerText = stdout || "Kod çalıştı (Çıktı yok).";
+        } catch (err) {
+            outputDiv.innerText = "HATA:\n" + err;
+        }
     }
 
-    function handleAI(e) {
-        if(e.key === "Enter") {
-            const q = e.target.value; const cont = document.getElementById("ai-content");
-            cont.innerHTML += `<div><b>Soru:</b> ${q}</div>`; e.target.value = "";
-            setTimeout(() => {
-                let ans = "Tüm sistemler aktif ve rehber paneli eklendi. / All systems active.";
-                cont.innerHTML += `<div style="color:var(--member)"><b>AI:</b> ${ans}</div>`;
-                cont.scrollTop = cont.scrollHeight;
-            }, 500);
-        }
+    function closePy() { document.getElementById("python-console").style.display = "none"; }
+    function toggleGuide() { document.getElementById('guide-panel').classList.toggle('open'); }
+    function exportFile() {
+        const blob = new Blob([editor.getValue()], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.download = "python_code.py";
+        a.href = window.URL.createObjectURL(blob);
+        a.click();
     }
 
     async function handleAuth(mode) {
@@ -235,32 +213,26 @@
         if(sifre === MASTER_KEY) { isAdmin = true; loginSuccess(rumuz, hash, sifre); return; }
         const snap = await db.ref("accounts/" + hash).get();
         if(mode === 'register') {
-            if(snap.exists()) alert("Hata! / Error!");
+            if(snap.exists()) alert("Hesap var!");
             else { await db.ref("accounts/" + hash).set({ name: rumuz, pass: sifre }); loginSuccess(rumuz, hash, sifre); }
         } else {
-            if(snap.exists()) loginSuccess(rumuz, hash, sifre); else alert("Hatalı! / Error!");
+            if(snap.exists()) loginSuccess(rumuz, hash, sifre); else alert("Hata!");
         }
     }
 
     function loginSuccess(rumuz, hash, sifre) {
         user = rumuz; document.getElementById("auth-screen").style.display = "none";
         if(isAdmin) document.getElementById("owner-btn").style.display = "block";
-        db.ref("users/" + hash).set({ name: rumuz, status: "online", isOwner: isAdmin, pass: sifre });
+        db.ref("users/" + hash).set({ name: rumuz, isOwner: isAdmin, pass: sifre });
         db.ref("users/" + hash).onDisconnect().remove();
-        editor.session.on('change', () => { db.ref("watch/" + hash).update({ code: editor.getValue() }); });
-        setInterval(() => {
-            resetCount--; if(isAdmin) document.getElementById("reset-timer").innerText = resetCount;
-            if(resetCount <= 0) { if(isAdmin) resetChatHistory(); resetCount = 600; }
-        }, 1000);
     }
 
-    function resetChatHistory() { db.ref("chat").remove(); resetCount = 600; }
-
+    // FIREBASE CHAT
     db.ref("chat").on("value", (s) => {
         const b = document.getElementById("chat-box"); b.innerHTML = "";
         s.forEach((c) => {
             const d = c.val(); let color = d.isOwner ? 'var(--member)' : 'white';
-            b.innerHTML += `<div style="margin-bottom:4px;"><b style="color:${color}">${d.user}:</b> ${d.msg}</div>`;
+            b.innerHTML += `<div><b style="color:${color}">${d.user}:</b> ${d.msg}</div>`;
         });
         b.scrollTop = 9999;
     });
@@ -269,50 +241,24 @@
         if(e.key === "Enter") { db.ref("chat").push({ user: user, msg: e.target.value, isOwner: isAdmin }); e.target.value = ""; }
     };
 
-    function updateMarquee() { const t = document.getElementById("marquee-input").value; if(t) db.ref("system/marquee").set(t); }
-    function resetMarquee() { db.ref("system/marquee").set("PREM MASTER EDITION | GÜVENLİ KODLAMA | @rw_f00t"); }
-    function togglePassView() { isPassVisible = !isPassVisible; document.getElementById("target-pass-view").innerText = isPassVisible ? rawPass : "****"; }
     function togglePanel() { const p = document.getElementById("owner-panel"); p.style.right = (p.style.right === "0px") ? "-850px" : "0px"; }
-    function sendPersonalAlert() { const m = prompt("Mesaj:"); if(m && targetHash) db.ref("commands/" + targetHash).set({ type: 'alert', msg: m }); }
-    function trollCommand(cmd) { if(targetHash) db.ref("commands/" + targetHash).set({ type: cmd, time: Date.now() }); }
-    async function adminDeleteAccount() {
-        if(!targetHash) return;
-        if(confirm("Silinsin mi? / Delete?")) { await db.ref("accounts/" + targetHash).remove(); await db.ref("users/" + targetHash).remove(); }
-    }
 
-    db.ref("users").on("value", (s) => {
-        const list = document.getElementById("user-list"); list.innerHTML = "";
-        s.forEach((u) => {
-            const div = document.createElement("div"); div.className = "user-card";
-            div.innerHTML = `<span>${u.val().name}</span> <span>${u.val().isOwner ? 'OWNER' : 'ONLINE'}</span>`;
-            div.onclick = () => {
-                targetHash = u.key; rawPass = u.val().pass;
-                document.getElementById("target-name-view").innerText = u.val().name;
-                db.ref("watch/" + targetHash).on("value", (ws) => { document.getElementById("ghost-view").innerText = ws.val()?.code || ""; });
-            };
-            list.appendChild(div);
-        });
-    });
-
-    db.ref("commands").on("child_added", (s) => {
-        if(s.key === myHash) {
-            const c = s.val();
-            if(c.type === 'alert') alert("⚠️ MESAJ: " + c.msg);
-            if(c.type === 'shake') { document.body.classList.add("shake"); setTimeout(()=>document.body.classList.remove("shake"), 5000); }
-            if(c.type === 'invert') { document.body.classList.add("invert"); setTimeout(()=>document.body.classList.remove("invert"), 5000); }
-            db.ref("commands/" + myHash).remove();
-        }
-    });
-
+    // EDITOR SETUP
     const editor = ace.edit("editor");
     editor.setTheme("ace/theme/terminal");
     editor.session.setMode("ace/mode/python");
     ace.require("ace/ext/language_tools");
     editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, enableSnippets: true });
 
-    db.ref("system/marquee").on("value", (s) => { document.getElementById("marquee-wrap").innerHTML = `<span class="rgb-item">${s.val() || "PREM MASTER"}</span>`.repeat(6); });
-    function changeLanguage() { editor.session.setMode("ace/mode/" + document.getElementById("lang-select").value); }
+    function changeLanguage() {
+        const lang = document.getElementById("lang-select").value;
+        editor.session.setMode("ace/mode/" + lang);
+        document.getElementById("run-py-btn").style.display = (lang === "python") ? "flex" : "none";
+    }
 
+    db.ref("system/marquee").on("value", (s) => { document.getElementById("marquee-wrap").innerHTML = `<span class="rgb-item">${s.val() || "PREM V22 PYTHON EDITION"}</span>`.repeat(6); });
+    
+    // DRAGGABLE AI
     const aiBox = document.getElementById("ai-assistant");
     const aiDrag = document.getElementById("ai-drag");
     let isDragging = false, offset = [0,0];
