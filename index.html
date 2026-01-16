@@ -2,78 +2,85 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>CodEditor | ULTRA MASTER V24</title>
+    <title>CodEditor | V25 ULTRA MASTER</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ext-language_tools.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
     <style>
-        :root { --accent: #00ff41; --bg: #000; --owner: #ff00c8; --member: #00d4ff; --warn: #ffcc00; --error: #ff4444; --panel-bg: #0a0a0a; --py-blue: #3776ab; }
+        :root { --accent: #00ff41; --bg: #000; --owner: #ff00c8; --member: #00d4ff; --warn: #ffcc00; --error: #ff4444; --py-blue: #3776ab; }
         body { margin: 0; background: var(--bg); color: white; font-family: 'Courier New', monospace; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        body::before { content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none; border: 2px solid; border-image: linear-gradient(90deg, #f00, #48ff00, #002bff, #ff00c8) 1; animation: borderRotate 8s linear infinite; }
+        
+        /* RGB ÇERÇEVE */
+        body::before { content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none; border: 3px solid; border-image: linear-gradient(90deg, #f00, #48ff00, #002bff, #ff00c8) 1; animation: borderRotate 6s linear infinite; }
         @keyframes borderRotate { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
 
-        /* REHBER PANELİ */
-        #guide-panel { position: fixed; left: -350px; top: 0; width: 320px; height: 100%; background: #050505; border-right: 3px solid var(--accent); z-index: 10005; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; overflow-y: auto; box-shadow: 20px 0 50px rgba(0,0,0,0.9); }
-        #guide-panel.open { left: 0; }
-        .guide-header { border-bottom: 1px solid var(--accent); padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-        .guide-item { background: #111; border: 1px solid #222; padding: 12px; margin-bottom: 15px; border-radius: 8px; }
-        .guide-item h4 { color: var(--accent); margin: 0 0 8px 0; font-size: 14px; }
-        .guide-item code { color: var(--warn); display: block; background: #000; padding: 5px; border-radius: 4px; font-size: 12px; margin-top: 5px; }
-
-        /* PYTHON TERMINAL */
-        #python-console { position: absolute; bottom: 60px; left: 350px; width: 500px; height: 250px; background: rgba(5,5,5,0.98); border: 2px solid var(--py-blue); border-radius: 10px; z-index: 3000; display: none; flex-direction: column; }
-        #py-header { background: var(--py-blue); color: white; padding: 10px 15px; font-size: 12px; font-weight: bold; display: flex; justify-content: space-between; border-radius: 8px 8px 0 0; }
-        #py-output { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; color: #00ff41; white-space: pre-wrap; }
-
-        header { padding: 12px 25px; background: #080808; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; z-index: 1001; }
-        .nav-btn { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .nav-btn:hover { background: var(--accent); color: #000; }
-        
+        /* GİRİŞ EKRANI & SARI KURALLAR */
         #auth-screen { position: fixed; inset: 0; background: #000; z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { border: 1px solid var(--accent); padding: 40px; width: 450px; text-align: center; background: #050505; border-radius: 15px; }
+        .auth-box { border: 2px solid var(--accent); padding: 40px; width: 480px; text-align: center; background: #050505; border-radius: 15px; box-shadow: 0 0 30px rgba(0,255,65,0.2); }
+        .system-warning { color: var(--warn); font-size: 11px; border: 1px dashed var(--warn); padding: 15px; margin-bottom: 20px; text-align: left; background: rgba(255, 204, 0, 0.05); line-height: 1.6; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 12px; background: #111; border: 1px solid #333; color: var(--accent); outline: none; border-radius: 8px; box-sizing: border-box; }
+        .auth-btn { width: 100%; padding: 15px; background: var(--accent); color: black; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
 
-        #main-container { display: flex; flex: 1; overflow: hidden; }
+        /* HEADER */
+        header { padding: 12px 25px; background: #080808; border-bottom: 1px solid #1a1a1a; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .nav-btn { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
+
+        /* TERMINAL & REHBER */
+        #python-console { position: absolute; bottom: 70px; left: 350px; width: 550px; height: 280px; background: rgba(0,0,0,0.95); border: 2px solid var(--py-blue); border-radius: 10px; z-index: 5000; display: none; flex-direction: column; }
+        #py-header { background: var(--py-blue); color: white; padding: 10px; font-weight: bold; display: flex; justify-content: space-between; cursor: move; }
+        #py-output { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; color: #00ff41; white-space: pre-wrap; }
+        
+        #guide-panel { position: fixed; left: -350px; top: 0; width: 320px; height: 100%; background: #080808; border-right: 2px solid var(--accent); z-index: 10005; transition: 0.4s; padding: 25px; overflow-y: auto; }
+        #guide-panel.open { left: 0; }
+
+        /* MAIN STYLES */
+        #main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
         #editor { flex: 1; font-size: 16px; background: #000 !important; }
         #sidebar { width: 320px; background: #050505; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; padding: 15px; }
-        #chat-box { flex: 1; overflow-y: auto; font-size: 11px; margin-bottom: 10px; padding: 10px; background: #020202; border: 1px solid #111; border-radius: 8px; }
+        #chat-box { flex: 1; overflow-y: auto; font-size: 11px; margin-bottom: 10px; padding: 10px; background: #020202; border-radius: 8px; border: 1px solid #111; }
         
         .run-btn { background: var(--py-blue); color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; display: none; }
+        .rgb-marquee { background: #050505; border-top: 1px solid #1a1a1a; height: 35px; display: flex; align-items: center; overflow: hidden; }
+        #marquee-wrap { display: flex; white-space: nowrap; animation: marquee-flow 25s linear infinite; }
+        .rgb-item { font-size: 13px; font-weight: 900; padding: 0 60px; animation: rgb-rainbow 6s linear infinite; }
+        @keyframes marquee-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes rgb-rainbow { 0% { color: #f00; } 50% { color: #0df; } 100% { color: #f00; } }
     </style>
 </head>
 <body>
 
-<div id="guide-panel">
-    <div class="guide-header">
-        <h2 style="color:var(--accent); margin:0;">SİSTEM REHBERİ</h2>
-        <button onclick="toggleGuide()" style="background:none; border:none; color:var(--error); cursor:pointer; font-weight:bold; font-size:20px;">X</button>
-    </div>
-    <div class="guide-item">
-        <h4>🐍 PYTHON ÇALIŞTIRMA</h4>
-        <p style="font-size:11px; color:#aaa;">Kodunu yaz, sağ üstteki <b>RUN</b> butonuna bas.</p>
-        <code>print("Selam Berk!")</code>
-    </div>
-    <div class="guide-item">
-        <h4>📥 AKILLI İNDİRME</h4>
-        <p style="font-size:11px; color:#aaa;">Seçtiğin dile göre otomatik uzantı (.py, .html, .js) eklenir.</p>
+<div id="auth-screen">
+    <div class="auth-box">
+        <div style="color:var(--accent); margin-bottom:15px; font-weight:bold; font-size: 24px;">[ PREM_EDITION_V25 ]</div>
+        <div class="system-warning">
+            <b style="color:var(--warn)">[ SARI KURALLAR / YELLOW RULES ]</b><br><br>
+            • Instagram: <b>@rw_f00t</b><br>
+            • <b>Aynı kullanıcı adıyla farklı hesaplar açılabilir.</b><br>
+            • <b>Chat 10 dakikada bir resetlenir.</b><br>
+            • <b>Python V25 Engine & Akıllı İndirme Aktif.</b>
+        </div>
+        <input type="text" id="user-name" class="auth-input" placeholder="KULLANICI ADI">
+        <input type="password" id="user-pass" class="auth-input" placeholder="ŞİFRE">
+        <button class="auth-btn" onclick="handleAuth()">SİSTEMİ BAŞLAT</button>
     </div>
 </div>
 
-<div id="auth-screen">
-    <div class="auth-box">
-        <h1 style="color:var(--accent)">[ PREM_V24 ]</h1>
-        <input type="text" id="user-name" placeholder="KULLANICI ADI" style="width:100%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white;">
-        <input type="password" id="user-pass" placeholder="ŞİFRE" style="width:100%; padding:10px; margin-bottom:10px; background:#111; border:1px solid #333; color:white;">
-        <button onclick="handleAuth('login')" style="width:100%; padding:15px; background:var(--accent); color:black; font-weight:bold; border:none; cursor:pointer;">SİSTEME GİRİŞ YAP</button>
+<div id="guide-panel">
+    <h3 style="color:var(--accent)">DİL REHBERİ</h3>
+    <div style="background:#111; padding:10px; border-radius:5px; margin-bottom:10px;">
+        <h4 style="color:var(--accent); margin-top:0;">PYTHON</h4>
+        <code>print("Merhaba Berk!")</code>
     </div>
+    <button class="nav-btn" onclick="toggleGuide()">REHBERİ KAPAT</button>
 </div>
 
 <header>
-    <div style="color:var(--accent); font-weight:bold; font-size:18px;">> KERNEL_V24_AUTO</div>
+    <div style="color:var(--accent); font-weight:bold; font-size:18px;">> KERNEL_ULTRA_V25</div>
     <div style="display: flex; gap: 10px; align-items: center;">
         <button class="nav-btn" onclick="toggleGuide()">❓ REHBER</button>
-        <button id="run-py-btn" class="run-btn" onclick="runPython()">▶ RUN</button>
+        <button id="run-py-btn" class="run-btn" onclick="runPython()">▶ ÇALIŞTIR</button>
         <button id="dl-btn" class="nav-btn" style="border-color:var(--warn); color:var(--warn);" onclick="exportFile()">📥 İNDİR (.py)</button>
         <select id="lang-select" onchange="changeLanguage()" style="background:#000; color:var(--accent); border:1px solid var(--accent); padding: 5px;">
             <option value="python">Python</option>
@@ -81,33 +88,36 @@
             <option value="html">HTML</option>
             <option value="css">CSS</option>
         </select>
-        <button id="owner-btn" style="display:none; background:var(--owner); color:white; border:none; padding:8px 18px; cursor:pointer; border-radius:20px; font-weight:bold;" onclick="togglePanel()">KOMUTA MERKEZİ</button>
     </div>
 </header>
 
 <div id="main-container">
-    <div id="editor"># V24 Otomatik Uzantı Aktif!
-print("Sag ustteki indir butonu dile gore degisir.")</div>
+    <div id="editor">print("V25 Beast Edition Aktif!")
+# Tum hacker arayuzu ve sari kurallar geri dondu.</div>
 
     <div id="python-console">
-        <div id="py-header"><span>PYTHON TERMINAL</span><span onclick="closePy()" style="cursor:pointer;">[KAPAT]</span></div>
-        <div id="py-output">Python Yukleniyor...</div>
+        <div id="py-header"><span>PYTHON TERMINAL</span><span onclick="closePy()" style="cursor:pointer;">[X]</span></div>
+        <div id="py-output">Motor yukleniyor...</div>
     </div>
 
     <div id="sidebar">
         <div id="chat-box"></div>
-        <input type="text" id="chat-input" style="background:#111; border:1px solid #333; color:#fff; width:100%; padding:10px;" placeholder="Mesaj gönder...">
+        <input type="text" id="chat-input" class="auth-input" style="margin:0;" placeholder="Mesaj yaz...">
     </div>
 </div>
 
+<div class="rgb-marquee"><div id="marquee-wrap"></div></div>
+
 <script>
+    // FİREBASE KONFİGÜRASYONU
     const firebaseConfig = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", authDomain: "prem-d18e3.firebaseapp.com", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3", storageBucket: "prem-d18e3.firebasestorage.app", messagingSenderId: "828611092580", appId: "1:828611092580:web:5f8e2c7c501c63a2d73f71" };
     firebase.initializeApp(firebaseConfig); const db = firebase.database();
-    
+
+    // PYTHON MOTORU
     let pyodideInstance = null;
     async function initPython() {
         pyodideInstance = await loadPyodide();
-        document.getElementById("py-output").innerText = "Python Hazır.\n";
+        document.getElementById("py-output").innerText = "Python Hazır. Kodunu yaz ve 'ÇALIŞTIR'a bas.\n";
         document.getElementById("run-py-btn").style.display = "block";
     }
     initPython();
@@ -116,51 +126,47 @@ print("Sag ustteki indir butonu dile gore degisir.")</div>
     editor.setTheme("ace/theme/terminal");
     editor.session.setMode("ace/mode/python");
 
-    // AKILLI UZANTI SİSTEMİ
     const extensions = { python: ".py", javascript: ".js", html: ".html", css: ".css" };
 
     function changeLanguage() {
         const l = document.getElementById("lang-select").value;
         editor.session.setMode("ace/mode/" + l);
         document.getElementById("run-py-btn").style.display = (l === 'python') ? 'block' : 'none';
-        
-        // Buton metnini güncelle
-        const ext = extensions[l] || ".txt";
-        document.getElementById("dl-btn").innerHTML = `📥 İNDİR (${ext})`;
+        document.getElementById("dl-btn").innerText = `📥 İNDİR (${extensions[l] || ".txt"})`;
+    }
+
+    async function handleAuth() {
+        const u = document.getElementById("user-name").value;
+        const p = document.getElementById("user-pass").value;
+        if(u && p) {
+            document.getElementById("auth-screen").style.display = "none";
+            // Chat ve online sistemini burada baslatabilirsiniz
+        }
     }
 
     function exportFile() {
         const l = document.getElementById("lang-select").value;
-        const ext = extensions[l] || ".txt";
         const blob = new Blob([editor.getValue()], {type: "text/plain"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "kod_kaydi" + ext; // Uzantı burada ekleniyor
+        a.download = "kod_kaydi" + (extensions[l] || ".txt");
         a.click();
     }
 
     async function runPython() {
         document.getElementById("python-console").style.display = "flex";
         const out = document.getElementById("py-output");
-        out.innerText = "Calisiyor...\n";
+        out.innerText = "Sistem İşliyor...\n";
         try {
-            const code = editor.getValue();
             await pyodideInstance.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-            await pyodideInstance.runPythonAsync(code);
-            out.innerText = pyodideInstance.runPython("sys.stdout.getvalue()") || "Kod calisti.";
-        } catch (e) { out.innerText = "HATA: " + e; }
+            await pyodideInstance.runPythonAsync(editor.getValue());
+            out.innerText = pyodideInstance.runPython("sys.stdout.getvalue()") || "İşlem Tamamlandı (Çıktı Yok).";
+        } catch (e) { out.innerText = "SİSTEM HATASI: " + e; }
     }
 
     function toggleGuide() { document.getElementById('guide-panel').classList.toggle('open'); }
     function closePy() { document.getElementById("python-console").style.display = "none"; }
-    async function handleAuth(mode) {
-        const u = document.getElementById("user-name").value;
-        const p = document.getElementById("user-pass").value;
-        if(u && p) {
-            document.getElementById("auth-screen").style.display = "none";
-            if(p === "P9$mR@26!Xz#Q7_vK1*Lp-99") document.getElementById("owner-btn").style.display = "block";
-        }
-    }
+    db.ref("system/marquee").on("value", (s) => { document.getElementById("marquee-wrap").innerHTML = `<span class="rgb-item">${s.val() || "SYSTEM ONLINE | @RW_F00T"}</span>`.repeat(6); });
 </script>
 </body>
 </html>
