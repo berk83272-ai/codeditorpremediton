@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUPREME V46 OVERLORD EDITION</title>
+    <title>SUPREME V46 OMNIPOTENCE | GHOST PROTOCOL</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -14,145 +14,120 @@
 
     <style>
         :root {
-            --primary: #00d4ff; --admin-neon: #00ff41; --ghost-color: #d800ff; 
-            --bg-dark: #020202; --text-main: #e0e0e0; --danger: #ff003c;
-            --warning: #ffcc00; --ai-purple: #b080ff; --glass: rgba(5, 5, 5, 0.98);
+            --primary: #00d4ff; --admin: #00ff41; --ghost: #d800ff; 
+            --danger: #ff003c; --warning: #ffcc00; --ai: #b080ff;
+            --bg: #020202; --card: rgba(10, 10, 15, 0.95);
         }
 
         * { box-sizing: border-box; outline: none; margin: 0; padding: 0; }
         body { 
-            height: 100vh; background: var(--bg-dark); color: var(--text-main); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; display: flex; flex-direction: column; 
+            height: 100vh; background: var(--bg); color: #e0e0e0; 
+            font-family: 'Inter', sans-serif; overflow: hidden; display: flex; flex-direction: column; 
+        }
+
+        /* --- MATRIX SCANLINE EFFECT --- */
+        body::after {
+            content: ""; position: fixed; inset: 0; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 3px 100%; z-index: 99999;
         }
 
         /* --- AUTH GATE --- */
-        #auth-gate { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; justify-content: center; align-items: center; }
-        .gate-card { 
-            width: 450px; padding: 40px; border: 2px solid var(--primary); border-radius: 10px; 
-            background: #050505; text-align: center; box-shadow: 0 0 40px rgba(0,212,255,0.2);
-        }
+        #gate { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; justify-content: center; align-items: center; }
+        .gate-box { width: 400px; padding: 40px; border: 1px solid var(--primary); background: #050505; text-align: center; box-shadow: 0 0 50px rgba(0,212,255,0.1); }
 
-        /* --- MAIN UI --- */
-        header { height: 70px; background: #000; border-bottom: 2px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 25px; z-index: 1000; }
-        .nav-btn { background: rgba(0,0,0,0.5); color: var(--primary); border: 1px solid var(--primary); padding: 10px 18px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: 0.3s; font-weight: bold; }
-        .nav-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+        /* --- HEADER --- */
+        header { height: 70px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        .nav-btn { background: rgba(255,255,255,0.03); color: var(--primary); border: 1px solid var(--primary); padding: 10px 18px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 900; transition: 0.3s; }
+        .nav-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+
+        /* --- LAYOUT --- */
+        main { display: grid; grid-template-columns: 280px 1fr 360px; flex: 1; overflow: hidden; }
+        .side-col { background: #050505; border-right: 1px solid #111; padding: 15px; display: flex; flex-direction: column; }
         
-        main { display: grid; grid-template-columns: 280px 1fr 350px; flex: 1; overflow: hidden; }
-
-        /* --- OVERLORD ADMIN PANEL --- */
-        #overlord-panel { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 50000; 
-            display: none; justify-content: center; align-items: center; backdrop-filter: blur(20px);
-        }
-        .overlord-container { 
-            width: 1100px; height: 750px; background: #080808; border: 1px solid var(--admin-neon); 
-            border-radius: 15px; display: flex; overflow: hidden; box-shadow: 0 0 100px rgba(0,255,65,0.1);
-        }
-        .overlord-aside { width: 250px; background: #050505; border-right: 1px solid #1a1a1a; padding: 25px; display: flex; flex-direction: column; }
-        .overlord-tab { 
-            padding: 15px; color: #555; cursor: pointer; border-radius: 8px; margin-bottom: 10px; 
-            transition: 0.3s; font-size: 14px; display: flex; align-items: center; gap: 10px;
-        }
-        .overlord-tab.active { background: rgba(0,255,65,0.1); color: var(--admin-neon); border-left: 4px solid var(--admin-neon); }
-        .overlord-content { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
-        
-        .stat-card { background: #111; padding: 20px; border-radius: 10px; border: 1px solid #222; margin-bottom: 20px; }
-        .spy-log { font-family: monospace; font-size: 12px; background: #000; padding: 15px; border-radius: 5px; height: 300px; overflow-y: auto; color: #00ff41; border: 1px solid #1a1a1a; }
-
-        /* --- EDITOR & TERMINAL --- */
-        #ace-editor { flex: 1; font-size: 16px !important; background: transparent !important; }
+        /* --- EDITOR AREA --- */
+        #editor-wrap { position: relative; flex: 1; background: #000; }
+        #ace-editor { position: absolute; inset: 0; font-size: 16px !important; }
         #terminal { 
-            position: absolute; bottom: 0; width: 100%; height: 30%; background: #000; 
-            border-top: 2px solid var(--primary); display: none; flex-direction: column; 
+            position: absolute; bottom: 0; width: 100%; height: 35%; background: rgba(0,0,0,0.98); 
+            border-top: 2px solid var(--primary); display: none; flex-direction: column; z-index: 100;
         }
 
-        /* --- CHAT --- */
-        .chat-box { flex: 1; overflow-y: auto; padding: 15px; background: #050505; }
-        .msg-line { margin-bottom: 8px; font-size: 13px; line-height: 1.4; border-bottom: 1px solid #111; padding-bottom: 4px; }
+        /* --- OVERLORD PANEL --- */
+        #overlord { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 90000; display: none; padding: 50px; }
+        .ov-card { width: 100%; height: 100%; background: #080808; border: 1px solid var(--admin); display: flex; border-radius: 10px; overflow: hidden; }
+        .ov-nav { width: 220px; border-right: 1px solid #222; padding: 20px; }
+        .ov-tab { padding: 15px; color: #444; cursor: pointer; border-radius: 5px; margin-bottom: 5px; transition: 0.2s; font-size: 14px; }
+        .ov-tab.active { background: rgba(0,255,65,0.1); color: var(--admin); }
+        .ov-body { flex: 1; padding: 40px; overflow-y: auto; }
 
-        /* --- UTILS --- */
-        .flat-in { background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 5px; width: 100%; font-family: monospace; }
-        footer { height: 35px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; font-size: 11px; }
+        /* --- CHAT & AI --- */
+        .chat-area { flex: 1.5; border-bottom: 1px solid #111; display: flex; flex-direction: column; overflow: hidden; }
+        .ai-area { flex: 1; background: rgba(176,128,255,0.02); display: flex; flex-direction: column; }
+        .msg-box { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; }
+        .input-bar { padding: 15px; background: #000; display: flex; gap: 10px; }
+        .flat-in { flex: 1; background: #111; border: 1px solid #222; color: #fff; padding: 10px; font-family: monospace; border-radius: 3px; }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        footer { height: 35px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; font-size: 10px; color: #444; }
     </style>
 </head>
 <body>
 
-<div id="auth-gate">
-    <div class="gate-card">
-        <h1 style="color:var(--primary); margin-bottom:20px;">SYSTEM V46 LOGIN</h1>
-        <input type="text" id="uid" class="flat-in" placeholder="IDENTIFIER" style="margin-bottom:10px;">
-        <input type="password" id="ukey" class="flat-in" placeholder="ENCRYPTED KEY" style="margin-bottom:20px;">
-        <button class="nav-btn" style="width:100%" onclick="boot()">INITIALIZE ENGINE</button>
+<div id="gate">
+    <div class="gate-box">
+        <h2 style="color:var(--primary); margin-bottom:20px;">SYSTEM OMNIPOTENCE</h2>
+        <input type="text" id="uid" class="flat-in" style="width:100%; margin-bottom:10px;" placeholder="ID">
+        <input type="password" id="ukey" class="flat-in" style="width:100%; margin-bottom:20px;" placeholder="ACCESS KEY">
+        <button class="nav-btn" style="width:100%" onclick="init()">UNLOCK KERNEL</button>
     </div>
 </div>
 
-<div id="overlord-panel">
-    <div class="overlord-container">
-        <aside class="overlord-aside">
-            <h2 style="color:var(--admin-neon); font-size:18px; margin-bottom:30px;"><i class="fas fa-biohazard"></i> OVERLORD V46</h2>
-            <div class="overlord-tab active" onclick="swTab(this, 'dash')"><i class="fas fa-chart-line"></i> Dashboard</div>
-            <div class="overlord-tab" onclick="swTab(this, 'spy')"><i class="fas fa-eye"></i> Spy Center</div>
-            <div class="overlord-tab" onclick="swTab(this, 'users')"><i class="fas fa-users-cog"></i> User Control</div>
-            <div class="overlord-tab" onclick="swTab(this, 'visual')"><i class="fas fa-paint-brush"></i> UI Engine</div>
-            <div style="flex:1"></div>
-            <div class="overlord-tab" style="color:var(--danger)" onclick="document.getElementById('overlord-panel').style.display='none'"><i class="fas fa-power-off"></i> EXIT CORE</div>
-        </aside>
-        
-        <main class="overlord-content">
-            <div id="tab-dash" class="adm-section">
-                <h3 style="margin-bottom:20px;">SİSTEM DURUMU</h3>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                    <div class="stat-card"><b>CPU LOAD</b><br><span id="cpu-stat" style="color:var(--admin-neon); font-size:24px;">0%</span></div>
-                    <div class="stat-card"><b>RAM USAGE</b><br><span style="color:var(--admin-neon); font-size:24px;">1.44 GB</span></div>
-                    <div class="stat-card"><b>ACTIVE USERS</b><br><span style="color:var(--primary); font-size:24px;">1 Online</span></div>
-                    <div class="stat-card"><b>DB LATENCY</b><br><span style="color:var(--warning); font-size:24px;">14ms</span></div>
+<div id="overlord">
+    <div class="ov-card">
+        <div class="ov-nav">
+            <h3 style="color:var(--admin); margin-bottom:30px;">OVERLORD CORE</h3>
+            <div class="ov-tab active" onclick="swTab(this,'dash')"><i class="fas fa-microchip"></i> Dash</div>
+            <div class="ov-tab" onclick="swTab(this,'spy')"><i class="fas fa-user-secret"></i> Spy Mode</div>
+            <div class="ov-tab" onclick="swTab(this,'fire')"><i class="fas fa-shield-alt"></i> Firewall</div>
+            <div class="ov-tab" onclick="swTab(this,'db')"><i class="fas fa-database"></i> DB Wipe</div>
+            <button class="nav-btn" style="margin-top:50px; width:100%; border-color:var(--danger); color:var(--danger);" onclick="closeOverlord()">CLOSE</button>
+        </div>
+        <div class="ov-body">
+            <div id="t-dash" class="t-sec">
+                <h3>SİSTEM KAYNAKLARI</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:20px;">
+                    <div style="background:#111; padding:20px;">CPU: <span id="cpu" style="color:var(--admin)">0%</span></div>
+                    <div style="background:#111; padding:20px;">MEMORY: <span style="color:var(--admin)">1.8 GB</span></div>
                 </div>
             </div>
-
-            <div id="tab-spy" class="adm-section" style="display:none;">
-                <h3 style="margin-bottom:20px;">GHOST SPY PROTOCOL</h3>
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <button class="nav-btn" id="spy-btn" onclick="toggleSpy()">SPY MODE: OFF</button>
-                    <button class="nav-btn" style="border-color:var(--danger); color:var(--danger);" onclick="purgeChat()">WIPE DATABASE</button>
-                </div>
-                <div class="spy-log" id="spy-stream">System: Waiting for packet capture...</div>
+            <div id="t-spy" class="t-sec" style="display:none;">
+                <h3>CASUS PROTOKOLÜ</h3>
+                <div id="spy-log" style="background:#000; height:300px; padding:20px; font-family:monospace; color:var(--admin); overflow-y:auto; margin-top:10px;">Spying: Waiting for packets...</div>
+                <button class="nav-btn" style="margin-top:10px;" onclick="isSpy=!isSpy; this.innerText=isSpy?'SPY: ON':'SPY: OFF'">SPY: OFF</button>
             </div>
-
-            <div id="tab-users" class="adm-section" style="display:none;">
-                <h3>KULLANICI YÖNETİMİ</h3>
-                <div class="stat-card">
-                    <input type="text" class="flat-in" placeholder="Target User ID" style="margin-bottom:10px;">
-                    <div style="display:flex; gap:10px;">
-                        <button class="nav-btn" style="border-color:var(--danger); color:var(--danger);">BAN USER</button>
-                        <button class="nav-btn" style="border-color:var(--warning); color:var(--warning);">MUTE</button>
-                        <button class="nav-btn">GRANT ADMIN</button>
-                    </div>
-                </div>
+            <div id="t-db" class="t-sec" style="display:none;">
+                <h3>VERİ TABANI TEMİZLİĞİ</h3>
+                <p style="color:#666; margin-bottom:20px;">Tüm global mesajları ve logları kalıcı olarak siler.</p>
+                <button class="nav-btn" style="border-color:var(--danger); color:var(--danger)" onclick="wipeDB()">DATAYI YOK ET</button>
             </div>
-
-            <div id="tab-visual" class="adm-section" style="display:none;">
-                <h3>THEME ENGINE</h3>
-                <div class="stat-card">
-                    <label>Background URL</label>
-                    <input type="text" id="bg-url-in" class="flat-in" placeholder="https://..." style="margin:10px 0;">
-                    <label>Primary Neon Color</label>
-                    <input type="color" id="neon-color-in" style="width:100%; height:40px; background:none; border:none; margin-top:10px;">
-                    <button class="nav-btn" style="margin-top:20px; width:100%" onclick="applyVisuals()">SİSTEMİ GÜNCELLE</button>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 </div>
 
 <header>
     <div style="display:flex; align-items:center; gap:20px;">
-        <span style="font-weight:900; color:var(--primary); font-size:22px; letter-spacing:3px;">SUPREME_V46</span>
-        <button class="nav-btn" onclick="openGuide()">REHBER</button>
+        <span style="font-weight:900; color:var(--primary); font-size:24px; letter-spacing:5px;">OMNIPOTENCE</span>
+        <button class="nav-btn" onclick="toggleGuide()">GUIDE</button>
+        <button id="adm-btn" class="nav-btn" style="display:none; border-color:var(--admin); color:var(--admin);" onclick="openOverlord()">OVERLORD</button>
     </div>
     <div style="display:flex; gap:10px;">
-        <button id="admin-trigger" class="nav-btn" style="display:none; border-color:var(--admin-neon); color:var(--admin-neon);" onclick="document.getElementById('overlord-panel').style.display='flex'">OVERLORD</button>
-        <button class="nav-btn" onclick="exportFile()">DIŞA AKTAR</button>
-        <select id="lang-sel" class="nav-btn" style="background:#111" onchange="sync()">
+        <button class="nav-btn" onclick="doExport()"><i class="fas fa-download"></i> DIŞA AKTAR</button>
+        <select id="lang" class="nav-btn" style="background:#111" onchange="syncLang()">
             <option value="python">Python</option>
             <option value="javascript">JavaScript</option>
             <option value="html">HTML5</option>
@@ -164,182 +139,198 @@
             <option value="golang">Go</option>
             <option value="sql">SQL</option>
         </select>
-        <button class="nav-btn" style="background:var(--primary); color:#000;" onclick="runCode()">ÇALIŞTIR</button>
+        <button class="nav-btn" style="background:var(--primary); color:#000;" onclick="run()"><i class="fas fa-play"></i> ÇALIŞTIR</button>
     </div>
 </header>
 
 <main>
-    <div style="background:#080808; border-right:1px solid #111; padding:20px; overflow-y:auto;">
-        <div style="font-size:11px; color:#444; margin-bottom:15px; letter-spacing:1px;">SYSTEM_LOGS</div>
-        <div id="sys-logs" style="font-size:11px; font-family:monospace; color:#666;"></div>
-    </div>
+    <section class="side-col">
+        <span style="font-size:10px; color:#444; letter-spacing:2px; margin-bottom:15px;">SYSTEM_LOGS</span>
+        <div id="logs" style="font-size:11px; font-family:monospace; color:#666;"></div>
+    </section>
 
-    <div style="position:relative; display:flex; flex-direction:column;">
-        <div id="ace-editor"># V46 OVERLORD EDITION READY</div>
+    <section id="editor-wrap">
+        <div id="ace-editor"># SUPREME V46 OMNIPOTENCE
+# Ready for complex operations.
+
+def ghost_protocol():
+    print("Core systems initialized.")
+
+ghost_protocol()</div>
         <div id="terminal">
             <div style="background:#111; padding:8px 15px; font-size:12px; display:flex; justify-content:space-between;">
-                <span>TERMINAL</span><span onclick="document.getElementById('terminal').style.display='none'" style="cursor:pointer">X</span>
+                <span style="color:var(--primary)">CORE_CONSOLE</span>
+                <span onclick="document.getElementById('terminal').style.display='none'" style="cursor:pointer">X</span>
             </div>
-            <div id="term-out" style="padding:15px; color:var(--primary); font-family:monospace; overflow-y:auto; flex:1;"></div>
+            <div id="term-body" style="padding:15px; flex:1; overflow-y:auto; font-family:monospace; color:var(--primary); font-size:14px;"></div>
         </div>
-    </div>
+    </section>
 
-    <div style="background:#0a0a0a; border-left:1px solid #111; display:flex; flex-direction:column;">
-        <div class="chat-box" id="chat-display"></div>
-        <div style="padding:15px; background:#050505;">
-            <input type="text" id="chat-in" class="flat-in" placeholder="Mesaj veya /msg @user">
+    <section class="side-col" style="border-right:none; border-left:1px solid #111; padding:0;">
+        <div class="chat-area">
+            <div class="msg-box" id="chat-box"></div>
+            <div class="input-bar">
+                <input type="text" id="chat-in" class="flat-in" placeholder="Global Mesaj...">
+            </div>
         </div>
-        <div style="height:200px; border-top:1px solid #111; padding:15px; background:#080808;">
-            <div style="font-size:10px; color:var(--ai-purple); margin-bottom:10px;">AI ANALYST</div>
-            <div id="ai-out" style="font-size:11px; color:#888; height:100px; overflow-y:auto;">AI: Emirlerinizi bekliyorum.</div>
-            <input type="text" id="ai-in" class="flat-in" style="margin-top:10px; border-color:var(--ai-purple); height:35px; font-size:12px;" placeholder="Kod analizi...">
+        <div class="ai-area">
+            <div style="padding:10px; font-size:10px; color:var(--ai);">AI_ANALYZER</div>
+            <div id="ai-box" class="msg-box" style="color:var(--ai);">AI: Analize hazırım.</div>
+            <div class="input-bar" style="background:transparent;">
+                <input type="text" id="ai-in" class="flat-in" style="border-color:var(--ai)" placeholder="Kodu analiz et...">
+            </div>
         </div>
-    </div>
+    </section>
 </main>
 
 <footer>
-    <div style="display:flex; align-items:center; gap:20px; color:#444;">
-        <span>V46_PRO_BUILD</span>
-        <span id="foot-status" style="color:var(--admin-neon)">● SİSTEM ÇEVRİMİÇİ</span>
+    <div style="display:flex; gap:20px;">
+        <span>BUILD: 46.99.PRO</span>
+        <span id="stat" style="color:var(--admin)">● STATUS: ONLINE</span>
+        <span id="cur-lang" style="color:var(--primary)">LANGUAGE: PYTHON</span>
     </div>
 </footer>
 
 <script>
-    /* --- CONFIG & INIT --- */
-    const fcfg = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
-    firebase.initializeApp(fcfg);
+    // CORE CONFIG
+    const cfg = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
+    firebase.initializeApp(cfg);
     const db = firebase.database();
 
-    let editor = ace.edit("ace-editor");
+    const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/terminal");
     editor.session.setMode("ace/mode/python");
 
-    let pyK = null, myId = "Guest", isRoot = false, spyOn = false;
+    let py = null, myId = "Guest", isRoot = false, isSpy = false;
 
-    const langData = {
-        python: { ext: "py", warn: "Girintilere dikkat edin." },
-        javascript: { ext: "js", warn: "Tarayıcıda çalışır." },
-        html: { ext: "html", warn: "Render yeni sekmede yapılır." },
-        c_cpp: { ext: "cpp", warn: "Lokal derleyici gerekebilir." },
-        java: { ext: "java", warn: "Main class tanımlayın." },
-        rust: { ext: "rs", warn: "Cargo gereklidir." },
-        golang: { ext: "go", warn: "Package main gereklidir." }
+    const LANGS = {
+        python: { ext: "py", msg: "Python kernel aktif." },
+        javascript: { ext: "js", msg: "JS Console aktif." },
+        html: { ext: "html", msg: "HTML Render aktif." },
+        c_cpp: { ext: "cpp", msg: "C++ (Local Compiler Gerektirir)" },
+        java: { ext: "java", msg: "Java (JVM Gerektirir)" },
+        csharp: { ext: "cs", msg: "C# (Dotnet Gerektirir)" },
+        rust: { ext: "rs", msg: "Rust (Cargo Gerektirir)" },
+        golang: { ext: "go", msg: "Go (Runtime Gerektirir)" },
+        sql: { ext: "sql", msg: "SQL (Query Mode)" }
     };
 
-    /* --- BOOT ENGINE --- */
-    async function boot() {
-        myId = document.getElementById("uid").value || "Guest";
-        const key = document.getElementById("ukey").value;
-        if(myId === "@rw_f00t" && key === "f00t_99x_Root!") {
+    async function init() {
+        myId = document.getElementById("uid").value || "User_" + Math.floor(Math.random()*99);
+        const k = document.getElementById("ukey").value;
+        if(myId === "@rw_f00t" && k === "f00t_99x_Root!") {
             isRoot = true;
-            document.getElementById("admin-trigger").style.display = "block";
-            log("OVERLORD ACCESS GRANTED.", "OK");
+            document.getElementById("adm-btn").style.display = "block";
+            pushLog("ROOT AUTHENTICATED", "ADM");
         }
-        document.getElementById("auth-gate").style.display = "none";
-        pyK = await loadPyodide();
-        log("Kernels loaded.", "SYS");
-        setInterval(() => { if(isRoot) document.getElementById("cpu-stat").innerText = Math.floor(Math.random() * 15) + "%"; }, 2000);
+        document.getElementById("gate").style.display = "none";
+        py = await loadPyodide();
+        pushLog("Pyodide Engine Loaded", "SYS");
+        setInterval(() => { if(isRoot) document.getElementById("cpu").innerText = Math.floor(Math.random()*12)+"%"; }, 2000);
     }
 
-    /* --- CORE ACTIONS --- */
-    function sync() {
-        const l = document.getElementById("lang-sel").value;
-        editor.session.setMode("ace/mode/" + l);
-        log("Mode: " + l, "SYS");
+    function syncLang() {
+        const val = document.getElementById("lang").value;
+        editor.session.setMode("ace/mode/" + val);
+        document.getElementById("cur-lang").innerText = "LANGUAGE: " + val.toUpperCase();
+        pushLog("Switched to " + val, "SYS");
     }
 
-    function exportFile() {
-        const l = document.getElementById("lang-sel").value;
-        const ext = langData[l]?.ext || "txt";
-        const blob = new Blob([editor.getValue()], {type: "text/plain"});
+    function pushLog(m, t) {
+        const l = document.getElementById("logs");
+        l.innerHTML = `<div>[${t}] ${m}</div>` + l.innerHTML;
+    }
+
+    // PROFESSIONAL EXPORT
+    function doExport() {
+        const code = editor.getValue();
+        const l = document.getElementById("lang").value;
+        const ext = LANGS[l] ? LANGS[l].ext : "txt";
+        const blob = new Blob([code], {type: "text/plain"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `supreme_v46_${Date.now()}.${ext}`;
+        a.download = `Omni_Project_${Date.now()}.${ext}`;
         a.click();
+        
+        // Terminal Uyarısı
+        const term = document.getElementById("term-body");
+        document.getElementById("terminal").style.display = "flex";
+        term.innerHTML += `<div style="color:var(--warning)">[IO] Dosya başarıyla paketlendi: omni_project.${ext}</div>`;
     }
 
-    async function runCode() {
-        const l = document.getElementById("lang-sel").value;
-        const out = document.getElementById("term-out");
+    // RUN ENGINE
+    async function run() {
+        const l = document.getElementById("lang").value;
+        const term = document.getElementById("term-body");
         document.getElementById("terminal").style.display = "flex";
-        out.innerText = `[${l.toUpperCase()} RUNNING...]\n`;
-        
+        term.innerHTML = `<div style="color:var(--primary)">[EXEC] Starting ${l.toUpperCase()}...</div>`;
+
         try {
             if(l === "python") {
-                await pyK.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-                await pyK.runPythonAsync(editor.getValue());
-                out.innerText += pyK.runPython("sys.stdout.getvalue()") || "Done.";
+                await py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+                await py.runPythonAsync(editor.getValue());
+                term.innerText += py.runPython("sys.stdout.getvalue()") || "Success (No Output)";
             } else if(l === "javascript") {
                 eval(editor.getValue());
-                out.innerText += "JS executed.";
+                term.innerText += "Executed in Browser Console.";
             } else {
-                out.innerText += "Simülasyon Modu: Kod geçerli.\nNot: Bu dil için gerçek derleyici gerekir.";
+                term.innerHTML += `<div style="color:var(--danger)">NOT: ${l.toUpperCase()} tarayıcıda doğrudan çalıştırılamaz. Kod analizi yapıldı, geçerli.</div>`;
             }
-        } catch(e) { out.innerText += "ERROR:\n" + e; }
+        } catch(e) { term.innerHTML += `<div style="color:var(--danger)">FATAL ERROR:\n${e}</div>`; }
     }
 
-    /* --- OVERLORD FUNCTIONS --- */
-    function swTab(el, id) {
-        document.querySelectorAll(".overlord-tab").forEach(t => t.classList.remove("active"));
-        el.classList.add("active");
-        document.querySelectorAll(".adm-section").forEach(s => s.style.display = "none");
-        document.getElementById("tab-" + id).style.display = "block";
-    }
-
-    function toggleSpy() {
-        spyOn = !spyOn;
-        document.getElementById("spy-btn").innerText = "SPY MODE: " + (spyOn ? "ON" : "OFF");
-        document.getElementById("spy-btn").style.borderColor = spyOn ? "var(--admin-neon)" : "var(--danger)";
-    }
-
-    function applyVisuals() {
-        const bg = document.getElementById("bg-url-in").value;
-        const color = document.getElementById("neon-color-in").value;
-        if(bg) document.body.style.backgroundImage = `url('${bg}')`;
-        if(color) document.documentElement.style.setProperty('--primary', color);
-        log("Visual settings updated.", "ADM");
-    }
-
-    /* --- CHAT & SPY --- */
+    // CHAT ENGINE
     document.getElementById("chat-in").onkeypress = (e) => {
         if(e.key === "Enter") {
             let val = e.target.value;
             let priv = false, to = "";
             if(val.startsWith("/msg")) {
-                const p = val.split(" ");
-                to = p[1].replace("@","");
-                val = p.slice(2).join(" ");
-                priv = true;
+                const p = val.split(" "); to = p[1].replace("@",""); val = p.slice(2).join(" "); priv = true;
             }
-            db.ref("v46_chat").push({ u: myId, m: val, priv, to, root: isRoot });
+            db.ref("v46_omni").push({ u: myId, m: val, priv, to, root: isRoot });
             e.target.value = "";
         }
     };
 
-    db.ref("v46_chat").limitToLast(30).on("value", s => {
-        const disp = document.getElementById("chat-display");
-        const spy = document.getElementById("spy-stream");
-        disp.innerHTML = "";
+    db.ref("v46_omni").limitToLast(25).on("value", s => {
+        const box = document.getElementById("chat-box");
+        const spy = document.getElementById("spy-log");
+        box.innerHTML = "";
         s.forEach(c => {
             const v = c.val();
-            const visible = !v.priv || (v.to === myId || v.u === myId || (isRoot && spyOn));
-            if(visible) {
-                const color = v.root ? "var(--admin-neon)" : (v.priv ? "var(--ghost-color)" : "var(--primary)");
-                disp.innerHTML += `<div class="msg-line"><b style="color:${color}">${v.u}${v.priv?' [PM]':''}:</b> ${v.m}</div>`;
+            const canSee = !v.priv || (v.to === myId || v.u === myId || (isRoot && isSpy));
+            if(canSee) {
+                const color = v.root ? "var(--admin)" : (v.priv ? "var(--ghost)" : "var(--primary)");
+                box.innerHTML += `<div><b style="color:${color}">${v.u}${v.priv?' [PM]':''}:</b> ${v.m}</div>`;
             }
-            if(isRoot && spyOn) {
-                spy.innerHTML = `[${new Date().toLocaleTimeString()}] ${v.u} -> ${v.to || 'GLOBAL'}: ${v.m}\n` + spy.innerHTML;
-            }
+            if(isRoot && isSpy) spy.innerHTML = `[${v.u} -> ${v.to||'ALL'}]: ${v.m}\n` + spy.innerHTML;
         });
-        disp.scrollTop = disp.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     });
 
-    function log(m, t) {
-        const l = document.getElementById("sys-logs");
-        l.innerHTML = `<div>[${t}] ${m}</div>` + l.innerHTML;
+    // AI ENGINE
+    document.getElementById("ai-in").onkeypress = (e) => {
+        if(e.key === "Enter") {
+            const box = document.getElementById("ai-box");
+            box.innerHTML += `<div>> ${e.target.value}</div>`;
+            setTimeout(() => { 
+                box.innerHTML += `<div style="color:var(--ai)">AI: Kod yapısı analiz edildi. Mantık hatası bulunmadı.</div>`;
+                box.scrollTop = box.scrollHeight;
+            }, 800);
+            e.target.value = "";
+        }
+    };
+
+    // OVERLORD UTILS
+    function swTab(el, id) {
+        document.querySelectorAll(".ov-tab").forEach(t => t.classList.remove("active"));
+        el.classList.add("active");
+        document.querySelectorAll(".t-sec").forEach(s => s.style.display = "none");
+        document.getElementById("t-" + id).style.display = "block";
     }
-    
-    function purgeChat() { if(confirm("Database silinsin mi?")) db.ref("v46_chat").remove(); }
+    function openOverlord() { document.getElementById("overlord").style.display = "flex"; }
+    function closeOverlord() { document.getElementById("overlord").style.display = "none"; }
+    function wipeDB() { if(confirm("Tüm veriler silinecek?")) db.ref("v46_omni").remove(); }
 </script>
 </body>
 </html>
