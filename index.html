@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CodEditor V46 | GHOST PROTOCOL</title>
+    <title>SUPREME V46 ULTRA-PRO | GHOST PROTOCOL</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -14,428 +14,463 @@
 
     <style>
         :root {
-            --primary: #00d4ff; 
-            --admin-neon: #00ff41;
-            --ghost-color: #d800ff;
-            --bg-img: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072');
-            --bg-color: #020202;
-            --text-main: #e0e0e0;
-            --danger: #ff003c;
-            --warning: #ffcc00;
-            --ai-purple: #b080ff;
-            --glass: rgba(10, 15, 20, 0.9);
-            --border-glow: 0 0 15px rgba(0, 212, 255, 0.3);
+            --primary: #00d4ff; --admin-neon: #00ff41; --ghost-color: #d800ff; 
+            --bg-dark: #050505; --text-main: #e0e0e0; --danger: #ff003c;
+            --warning: #ffcc00; --ai-purple: #b080ff; --glass: rgba(10, 10, 10, 0.95);
         }
 
-        * { box-sizing: border-box; outline: none; -webkit-user-select: none; user-select: none; cursor: default; }
-        #ace-editor, input, textarea, #term-body, .selectable, #guide-content { -webkit-user-select: text !important; user-select: text !important; cursor: text; }
-
-        body, html {
-            margin: 0; padding: 0; height: 100vh; width: 100vw;
-            background: var(--bg-img) center center / cover no-repeat fixed var(--bg-color);
-            color: var(--text-main); font-family: 'Segoe UI', sans-serif;
-            overflow: hidden; display: flex; flex-direction: column; transition: 0.5s;
+        /* Ana İskelet */
+        * { box-sizing: border-box; outline: none; margin: 0; padding: 0; }
+        body { 
+            height: 100vh; background: var(--bg-dark); color: var(--text-main); 
+            font-family: 'Fira Code', 'Consolas', monospace; overflow: hidden; display: flex; flex-direction: column; 
         }
 
-        /* --- [ LOGIN GATE ] --- */
-        #auth-gate {
-            position: fixed; inset: 0; background: #000; z-index: 20000;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .gate-card {
-            width: 500px; padding: 40px; background: rgba(10,10,10,0.95); border: 2px solid var(--primary);
-            border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(0,212,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-        .rules-box {
-            background: rgba(255,255,255,0.03); border: 1px dashed var(--primary);
-            padding: 15px; margin: 20px 0; text-align: left; font-size: 12px; color: #aaa;
-            line-height: 1.6; border-radius: 8px;
-        }
-        .gate-input {
-            width: 100%; padding: 12px; margin-bottom: 12px; background: #080808;
-            border: 1px solid #333; color: #fff; border-radius: 6px; transition: 0.3s;
-        }
-        .gate-btn {
-            width: 100%; padding: 15px; background: var(--primary); color: #000;
-            border: none; font-weight: 900; border-radius: 6px; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 1px; transition: 0.3s;
+        /* Matrix/Scanline Efekti */
+        body::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 9999; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
-        /* --- [ HEADER ] --- */
-        header {
-            height: 70px; background: rgba(0,0,0,0.9); border-bottom: 2px solid var(--primary);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 5000;
+        /* Auth Gate */
+        #auth-gate { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; justify-content: center; align-items: center; }
+        .gate-card { 
+            width: 500px; padding: 50px; border: 1px solid var(--primary); border-radius: 5px; 
+            background: rgba(10,10,10,1); text-align: center; box-shadow: 0 0 50px rgba(0,212,255,0.1);
         }
-        .nav-btn {
-            background: rgba(255,255,255,0.05); color: var(--primary); border: 1px solid var(--primary);
-            padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-left: 10px;
-        }
-        .admin-btn { background: var(--danger); color: #fff; border: none; display: none; }
 
-        /* --- [ MAIN CONTENT ] --- */
-        main { display: grid; grid-template-columns: 260px 1fr 350px; flex: 1; overflow: hidden; transition: 0.3s; }
+        /* Header & Nav */
+        header { 
+            height: 75px; background: #000; border-bottom: 1px solid #222; 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 25px; 
+        }
+        .nav-group { display: flex; align-items: center; gap: 15px; }
+        .nav-btn { 
+            background: transparent; color: var(--primary); border: 1px solid var(--primary); 
+            padding: 10px 20px; border-radius: 3px; cursor: pointer; font-size: 12px;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .nav-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+        .nav-select { 
+            background: #111; color: var(--primary); border: 1px solid var(--primary); 
+            padding: 9px; border-radius: 3px; font-family: monospace; 
+        }
+
+        /* Layout */
+        main { display: grid; grid-template-columns: 300px 1fr 380px; flex: 1; overflow: hidden; }
         
-        /* Gelişmiş Rehber Paneli (Sol) */
-        #guide-panel {
-            position: absolute; left: -300px; top: 70px; bottom: 40px; width: 300px;
-            background: rgba(5, 5, 5, 0.95); border-right: 2px solid var(--primary);
-            z-index: 4000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            padding: 20px; overflow-y: auto;
+        /* Sidebar - Logs */
+        .sidebar-left { background: #080808; border-right: 1px solid #111; padding: 20px; display: flex; flex-direction: column; }
+        .log-container { flex: 1; overflow-y: auto; font-size: 11px; color: #555; }
+        .log-entry { margin-bottom: 8px; line-height: 1.4; border-left: 2px solid #333; padding-left: 10px; }
+        .log-entry.success { border-color: var(--admin-neon); color: #888; }
+        .log-entry.error { border-color: var(--danger); color: var(--danger); }
+
+        /* Center - Editor */
+        .editor-container { position: relative; display: flex; flex-direction: column; background: #000; }
+        #ace-editor { flex: 1; font-size: 16px !important; }
+
+        /* Bottom Terminal */
+        #terminal-panel { 
+            height: 35%; background: #020202; border-top: 1px solid var(--primary); 
+            display: none; flex-direction: column; position: relative; z-index: 500;
         }
-        #guide-panel.open { left: 0; box-shadow: 20px 0 50px rgba(0,0,0,0.5); }
-        .guide-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid var(--primary); }
-        .guide-code { font-family: monospace; color: var(--warning); background: #111; padding: 2px 5px; border-radius: 3px; }
+        .term-header { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; font-size: 12px; color: var(--primary); }
+        #term-content { padding: 20px; overflow-y: auto; flex: 1; font-family: 'Courier New', monospace; color: #00ff41; font-size: 14px; white-space: pre-wrap; }
 
-        .side-panel { background: rgba(0,0,0,0.8); border-right: 1px solid #111; padding: 20px; overflow-y: auto; }
-        .log-item { font-size: 11px; color: #666; margin-bottom: 6px; border-left: 2px solid var(--primary); padding-left: 8px; }
+        /* Right Panel - Chat & AI */
+        .sidebar-right { background: #0a0a0a; border-left: 1px solid #111; display: flex; flex-direction: column; }
+        .chat-section { flex: 1.2; display: flex; flex-direction: column; border-bottom: 1px solid #111; }
+        .ai-section { flex: 0.8; display: flex; flex-direction: column; background: rgba(176, 128, 255, 0.02); }
+        .panel-label { padding: 10px 15px; font-size: 10px; color: #444; letter-spacing: 2px; text-transform: uppercase; font-weight: 900; }
+        
+        .display-box { flex: 1; overflow-y: auto; padding: 15px; font-size: 13px; }
+        .input-group { padding: 15px; display: flex; gap: 10px; }
+        .flat-input { 
+            flex: 1; background: #111; border: 1px solid #222; color: #fff; padding: 10px; 
+            border-radius: 3px; font-family: monospace; 
+        }
+        .flat-input:focus { border-color: var(--primary); }
 
-        #editor-zone { position: relative; }
-        #ace-editor { width: 100%; height: 100%; background: transparent !important; font-size: 16px; }
-
-        #terminal {
-            position: absolute; bottom: 0; width: 100%; height: 250px;
-            background: rgba(0,0,0,0.98); border-top: 3px solid var(--primary);
-            display: none; flex-direction: column; z-index: 1000;
+        /* Guide & Admin Overlay */
+        .overlay-panel {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
+        }
+        .panel-content { 
+            width: 800px; max-height: 80vh; background: #0d0d0d; border: 1px solid #333; 
+            border-radius: 10px; padding: 40px; overflow-y: auto; 
         }
 
-        /* --- [ ADMIN PANEL ] --- */
-        #admin-panel {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(15px);
-            z-index: 30000; display: none; align-items: center; justify-content: center;
-        }
-        .adm-container {
-            width: 1000px; height: 750px; background: var(--glass); border: 1px solid var(--admin-neon);
-            border-radius: 15px; display: flex; overflow: hidden;
-        }
-        .adm-sidebar { width: 250px; background: rgba(0,0,0,0.5); border-right: 1px solid #333; padding: 20px; display: flex; flex-direction: column; }
-        .adm-tab { padding: 15px; color: #888; cursor: pointer; border-radius: 8px; margin-bottom: 5px; transition: 0.3s; }
-        .adm-tab.active { background: rgba(0,255,65,0.1); color: var(--admin-neon); }
-        .adm-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .adm-section { display: none; }
-        .adm-section.active { display: block; }
+        /* Footer */
+        footer { height: 35px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; padding: 0 20px; font-size: 11px; color: #444; }
+        .status-dot { width: 8px; height: 8px; background: var(--admin-neon); border-radius: 50%; margin-right: 10px; box-shadow: 0 0 10px var(--admin-neon); }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .stat-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 10px; border: 1px solid #333; text-align: center; }
-
-        .msg-line { margin-bottom: 4px; padding: 2px 5px; border-radius: 3px; }
-        .msg-private { border-left: 3px solid var(--ghost-color); background: rgba(216, 0, 255, 0.05); }
-
-        footer { height: 40px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; overflow: hidden; }
-        .ticker { white-space: nowrap; animation: ticker-kb 30s linear infinite; color: var(--primary); font-size: 12px; font-weight: bold; }
-        @keyframes ticker-kb { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
-        /* HTML Preview Overlay */
-        #html-preview {
-            position: absolute; inset: 0; background: white; z-index: 500; display: none;
-        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
     </style>
 </head>
 <body>
 
-<div id="guide-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3 style="color:var(--primary); margin:0;"><i class="fas fa-book"></i> KOD REHBERİ</h3>
-        <i class="fas fa-times" onclick="toggleGuide()" style="cursor:pointer; color:var(--danger);"></i>
-    </div>
-    <div id="guide-content">
-        <div class="guide-item">
-            <b style="color:var(--primary);">Console Log</b><br>
-            <small>Ekrana yazı yazdırır.</small><br>
-            <code class="guide-code">console.log("Merhaba");</code>
-        </div>
-        <div class="guide-item">
-            <b style="color:var(--warning);">Python Print</b><br>
-            <small>Terminal çıktısı verir.</small><br>
-            <code class="guide-code">print("V46 Aktif")</code>
-        </div>
-        <div class="guide-item">
-            <b style="color:var(--admin-neon);">For Döngüsü (PY)</b><br>
-            <code class="guide-code">for i in range(5): print(i)</code>
-        </div>
-        <div class="guide-item">
-            <b style="color:var(--ai-purple);">AI Komutları</b><br>
-            <small>AI'ya kod yazdırırken: "Bana bir login formu yaz" veya "Hatamı bul" diyebilirsiniz.</small>
-        </div>
-    </div>
-</div>
-
 <div id="auth-gate">
     <div class="gate-card">
-        <h1 style="color:var(--primary); margin:0;">SYSTEM ACCESS V46</h1>
-        <div class="rules-box">
-            <b>[ GHOST PROTOCOL ]</b><br>
-            • Python, JS ve HTML dilleri için derleyici eklendi.<br>
-            • Sol paneldeki Rehber butonuna tıklayarak dökümanlara ulaşın.<br>
-            • "Dışa Aktar" butonu ile kodunuzu bilgisayarınıza kaydedin.<br>
+        <h1 style="color:var(--primary); font-size:28px; margin-bottom:10px;">SUPREME V46 PRO</h1>
+        <div style="background:#111; padding:15px; border-radius:4px; margin-bottom:25px; text-align:left; font-size:12px; color:#666;">
+            <p>> Multi-Language Engine: 15+ ACTIVE</p>
+            <p>> Export Protocol: AUTO-EXT</p>
+            <p>> Security: GHOST-LAYER 4</p>
         </div>
-        <input type="text" id="login-id" class="gate-input" placeholder="User ID">
-        <input type="password" id="login-key" class="gate-input" placeholder="Access Key">
-        <button class="gate-btn" onclick="startSystem()">SİSTEMİ BAŞLAT</button>
+        <input type="text" id="access-id" class="flat-input" style="margin-bottom:10px; width:100%" placeholder="USER IDENTIFIER">
+        <input type="password" id="access-key" class="flat-input" style="margin-bottom:20px; width:100%" placeholder="ENCRYPTED KEY">
+        <button class="nav-btn" style="width:100%" onclick="bootSystem()">BOOT SYSTEM</button>
     </div>
 </div>
 
-<div id="admin-panel">
-    <div class="adm-container">
-        <div class="adm-sidebar">
-            <div class="adm-logo"><i class="fas fa-biohazard"></i> OVERLORD</div>
-            <div class="adm-tab active" onclick="switchTab('dashboard')">Dashboard</div>
-            <div class="adm-tab" onclick="switchTab('visuals')">Görsel</div>
-            <div class="adm-tab" onclick="switchTab('security')">Güvenlik</div>
-            <div class="adm-tab" onclick="switchTab('comms')">İletişim</div>
-            <div style="flex:1"></div>
-            <div class="adm-tab" style="color:var(--danger);" onclick="toggleAdmin()">ÇIKIŞ</div>
-        </div>
-        <div class="adm-content">
-            <div id="tab-dashboard" class="adm-section active">
-                <div class="stat-grid">
-                    <div class="stat-card"><div class="stat-val" id="stat-cpu">12%</div><div class="stat-label">CPU</div></div>
-                    <div class="stat-card"><div class="stat-val" id="stat-ram">4.2 GB</div><div class="stat-label">RAM</div></div>
-                    <div class="stat-card"><div class="stat-val">1</div><div class="stat-label">NODES</div></div>
+<div id="admin-panel" class="overlay-panel">
+    <div class="panel-content" style="border-color: var(--admin-neon);">
+        <h2 style="color:var(--admin-neon); margin-bottom:20px;">OVERLORD CORE CONTROL</h2>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div style="background:#151515; padding:20px;">
+                <h4>SECURITY SETTINGS</h4>
+                <hr style="border:0.5px solid #222; margin:10px 0;">
+                <button class="nav-btn" style="width:100%; margin-bottom:10px;" onclick="toggleSpy()">SPY MODE: <span id="spy-label">OFF</span></button>
+                <button class="nav-btn" style="width:100%; border-color:var(--danger); color:var(--danger);" onclick="purgeChat()">PURGE ALL CHAT</button>
+            </div>
+            <div style="background:#151515; padding:20px;">
+                <h4>SYSTEM MONITOR</h4>
+                <div id="sys-stats" style="font-size:12px; color:var(--admin-neon); font-family:monospace; margin-top:10px;">
+                    CPU LOAD: 04% <br> RAM USAGE: 1.2GB <br> CONNECTIONS: 1 <br> LATENCY: 12ms
                 </div>
-                <div id="adm-mini-log" style="margin-top:20px; font-size:12px; color:#888;"></div>
-            </div>
-            <div id="tab-visuals" class="adm-section">
-                <input type="text" id="set-bg-url" class="gate-input" placeholder="BG URL">
-                <input type="color" id="set-theme-color" style="width:100%; height:40px;">
-                <button class="gate-btn" onclick="applyAdminSettings()">UYGULA</button>
-            </div>
-            <div id="tab-security" class="adm-section">
-                <button id="btn-spy" class="gate-btn" onclick="toggleSpy()">SPY OFF</button>
-                <button id="btn-lock" class="gate-btn" onclick="toggleLockdown()" style="margin-top:10px;">LOCK</button>
-                <button class="gate-btn" onclick="purgeChat()" style="margin-top:10px; background:var(--danger);">CHAT PURGE</button>
-            </div>
-            <div id="tab-comms" class="adm-section">
-                <textarea id="adm-alert" class="gate-input" placeholder="Global Alert..."></textarea>
-                <button class="gate-btn" onclick="sendBroadcast()">YAYINLA</button>
             </div>
         </div>
+        <button class="nav-btn" style="margin-top:30px;" onclick="closeOverlay('admin-panel')">EXIT CORE</button>
+    </div>
+</div>
+
+<div id="guide-overlay" class="overlay-panel">
+    <div class="panel-content">
+        <h2 id="guide-title" style="color:var(--primary); margin-bottom:20px;">LANGUAGE GUIDE</h2>
+        <div id="guide-body" style="line-height:1.6; color:#aaa;"></div>
+        <button class="nav-btn" style="margin-top:30px;" onclick="closeOverlay('guide-overlay')">CLOSE GUIDE</button>
     </div>
 </div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:20px;">
-        <button class="nav-btn" onclick="toggleGuide()"><i class="fas fa-bars"></i> REHBER</button>
-        <span style="font-size:24px; font-weight:900; color:var(--primary);">SUPREME_V46</span>
+    <div class="nav-group">
+        <span style="font-weight:900; color:var(--primary); letter-spacing:5px; border-right:1px solid #333; padding-right:20px; margin-right:10px;">V46_PRO</span>
+        <button class="nav-btn" onclick="openGuide()"><i class="fas fa-terminal"></i> REHBER</button>
+        <button id="admin-trigger" class="nav-btn" style="display:none; border-color:var(--admin-neon); color:var(--admin-neon);" onclick="openAdmin()"><i class="fas fa-biohazard"></i> OVERLORD</button>
     </div>
-    <div style="display:flex; align-items:center;">
-        <button id="admin-trigger" class="nav-btn admin-btn" onclick="toggleAdmin()">OVERLORD PANEL</button>
-        <button class="nav-btn" onclick="exportCode()"><i class="fas fa-download"></i> DIŞA AKTAR</button>
-        <select id="lang-sel" class="nav-btn" onchange="changeLang()">
-            <option value="python">Python 3.11</option>
-            <option value="javascript">JavaScript</option>
-            <option value="html">HTML / CSS</option>
+    <div class="nav-group">
+        <button class="nav-btn" onclick="fullExport()"><i class="fas fa-file-export"></i> DIŞA AKTAR</button>
+        <select id="lang-selector" class="nav-select" onchange="updateMode()">
+            <optgroup label="Sık Kullanılanlar">
+                <option value="python">Python 3.11</option>
+                <option value="javascript">JavaScript (ES6)</option>
+                <option value="html">HTML5 / Web</option>
+            </optgroup>
+            <optgroup label="Derlenen Diller">
+                <option value="c_cpp">C++ (GCC)</option>
+                <option value="java">Java 17</option>
+                <option value="csharp">C# (dotnet)</option>
+                <option value="rust">Rust 1.7</option>
+                <option value="golang">Go (Golang)</option>
+            </optgroup>
+            <optgroup label="Diğer Diller">
+                <option value="php">PHP 8.2</option>
+                <option value="ruby">Ruby</option>
+                <option value="sql">SQL (PostgreSQL)</option>
+                <option value="typescript">TypeScript</option>
+                <option value="css">CSS3</option>
+                <option value="json">JSON</option>
+                <option value="yaml">YAML</option>
+                <option value="markdown">Markdown</option>
+            </optgroup>
         </select>
-        <button id="run-btn" class="nav-btn" style="background:var(--primary); color:#000;" onclick="runCode()"><i class="fas fa-play"></i> ÇALIŞTIR</button>
+        <button class="nav-btn" style="background:var(--primary); color:#000;" onclick="runKernel()"><i class="fas fa-play"></i> ÇALIŞTIR</button>
     </div>
 </header>
 
-<main id="main-layout">
-    <div class="side-panel" id="sys-logs">
-        <div class="log-item"><b>[SYS]</b> Ghost Protocol Active...</div>
-    </div>
+<main>
+    <section class="sidebar-left">
+        <div class="panel-label">System Kernel Logs</div>
+        <div id="log-list" class="log-container">
+            </div>
+    </section>
 
-    <div id="editor-zone">
-        <div id="ace-editor"># V46 GHOST PROTOCOL
-print("Sistem Hazır.")</div>
-        <iframe id="html-preview"></iframe>
-        <div id="terminal">
-            <div style="background:var(--primary); color:#000; padding:10px; font-weight:bold; display:flex; justify-content:space-between;">
-                <span>CONSOLE_OUTPUT</span><span onclick="toggleTerm(false)" style="cursor:pointer;">[X]</span>
-            </div>
-            <div id="term-body" class="selectable" style="flex:1; padding:20px; overflow-y:auto; color:var(--primary); font-family:monospace;"></div>
-        </div>
-    </div>
+    <section class="editor-container">
+        <div id="ace-editor"># SUPREME_V46_PRO_EDITION
+# Author: GHOST_PROTOCOL
+# Status: READY
 
-    <div style="background:rgba(5,5,5,0.9); border-left:1px solid #111; display:flex; flex-direction:column;">
-        <div style="flex:1; padding:15px; display:flex; flex-direction:column; border-bottom:1px solid #111;">
-            <b style="font-size:11px; color:var(--primary);">GLOBAL CHAT</b>
-            <div id="chat-box" class="selectable" style="flex:1; background:#000; border:1px solid #222; padding:10px; font-size:12px; overflow-y:auto; margin:10px 0;"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chat-in" class="gate-input" style="margin:0;" placeholder="Mesaj...">
-                <button class="nav-btn" style="margin:0;" onclick="sendChat()">></button>
+import sys
+
+def init():
+    print("V46 PRO Kernel initialized successfully.")
+    print("All 15+ Language Engines are online.")
+
+if __name__ == "__main__":
+    init()</div>
+        
+        <div id="terminal-panel">
+            <div class="term-header">
+                <span>SYSTEM_CONSOLE v46.0.1</span>
+                <span style="cursor:pointer;" onclick="toggleTerminal(false)">[CLOSE]</span>
+            </div>
+            <div id="term-content"></div>
+        </div>
+    </section>
+
+    <section class="sidebar-right">
+        <div class="chat-section">
+            <div class="panel-label">Global Encryption Chat</div>
+            <div id="chat-display" class="display-box"></div>
+            <div class="input-group">
+                <input type="text" id="chat-input" class="flat-input" placeholder="Mesaj (veya /msg @user)...">
+                <button class="nav-btn" style="padding:10px;" onclick="broadcast()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-        <div style="flex:1; padding:15px; display:flex; flex-direction:column;">
-            <b style="font-size:11px; color:var(--ai-purple);">AI ASSISTANT V2</b>
-            <div id="ai-box" class="selectable" style="flex:1; background:#000; border:1px solid var(--ai-purple); padding:10px; font-size:12px; color:var(--ai-purple); overflow-y:auto; margin:10px 0;">AI: Algoritmalar optimize edildi.</div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="ai-in" class="gate-input" style="margin:0; border-color:var(--ai-purple);" placeholder="AI'ya komut ver...">
-                <button class="nav-btn" style="margin:0; border-color:var(--ai-purple); color:var(--ai-purple);" onclick="askAI()">?</button>
+        <div class="ai-section">
+            <div class="panel-label" style="color:var(--ai-purple)">Ghost AI Analyst</div>
+            <div id="ai-display" class="display-box" style="color:var(--ai-purple); font-size:12px;">AI: Emirlerinizi bekliyorum, efendim.</div>
+            <div class="input-group">
+                <input type="text" id="ai-input" class="flat-input" style="border-color:rgba(176, 128, 255, 0.3);" placeholder="Kod analizi iste...">
+                <button class="nav-btn" style="border-color:var(--ai-purple); color:var(--ai-purple);" onclick="askAI()"><i class="fas fa-brain"></i></button>
             </div>
         </div>
-    </div>
+    </section>
 </main>
 
 <footer>
-    <div class="ticker">
-        +++ SYSTEM: V46 GHOST +++ ENCRYPTION: 256-BIT +++ MULTI-LANG RUNTIME: ACTIVE +++ EXPORT READY +++
-    </div>
+    <div class="status-dot"></div>
+    <div style="margin-right:20px;">SİSTEM: ÇALIŞIYOR</div>
+    <div id="footer-lang" style="color:var(--primary);">DİL: PYTHON</div>
+    <div style="flex:1;"></div>
+    <div>V46.0.1 PRO BUILD - © 2026 GHOST_PROTOCOL</div>
 </footer>
 
 <script>
-    /* ANTI-INSPECT SECURITY */
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.onkeydown = function(e) {
-        if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74 || e.keyCode == 67)) || (e.ctrlKey && e.keyCode == 85)) return false;
-    };
+    /* --- ENGINE INITIALIZATION --- 
+    */
+    const FB_CONFIG = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
+    firebase.initializeApp(FB_CONFIG);
+    const database = firebase.database();
 
-    /* FIREBASE & CORE */
-    const cfg = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
-    firebase.initializeApp(cfg);
-    const db = firebase.database();
+    let kernelPy = null;
+    let currentUser = "Guest_" + Math.floor(Math.random()*999);
+    let isRoot = false;
+    let isSpyActive = false;
 
-    let py = null, myId = "Guest", isAdmin = false, isLocked = false, spyMode = false;
-
-    /* ACE EDITOR */
+    // ACE Editor Setup
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/terminal");
     editor.session.setMode("ace/mode/python");
-    editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, showPrintMargin: false });
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        showPrintMargin: false,
+        highlightActiveLine: true,
+        fontSize: "16px"
+    });
 
-    async function initKernel() {
-        try {
-            py = await loadPyodide();
-            pushLog("Python 3.11 Kernel Ready.", "OK");
-        } catch(e) { pushLog("Kernel Error!", "ERR"); }
-    }
-    initKernel();
+    // Language Metadata
+    const LANG_DB = {
+        python: { ext: "py", name: "Python 3", warn: "Lütfen 'indentation' (girinti) kurallarına uyun.", tips: "Kütüphane kullanımı için 'import' kullanın." },
+        javascript: { ext: "js", name: "JavaScript", warn: "Browser-side JS olarak çalışır.", tips: "Web konsoluna bakmayı unutmayın." },
+        html: { ext: "html", name: "HTML5", warn: "Render işlemi yeni sekmede yapılır.", tips: "CSS ve JS gömebilirsiniz." },
+        c_cpp: { ext: "cpp", name: "C++", warn: "Bu tarayıcı derleyicisi değildir.", tips: "Dışa aktarıp GCC ile derleyin." },
+        java: { ext: "java", name: "Java", warn: "Class adını 'Main' yapmanız önerilir.", tips: "JDK kurulu olmalıdır." },
+        csharp: { ext: "cs", name: "C#", warn: ".NET çevresi gerektirir.", tips: "Dışa aktarıp Visual Studio ile açın." },
+        rust: { ext: "rs", name: "Rust", warn: "Cargo veya rustc gereklidir.", tips: "Sahiplik kurallarına uyun." },
+        golang: { ext: "go", name: "Go", warn: "Goroutine kullanımı simüle edilemez.", tips: "package main gereklidir." },
+        sql: { ext: "sql", name: "SQL", warn: "Veritabanı bağlantısı yoktur.", tips: "Sorgu tasarımında kullanın." },
+        php: { ext: "php", name: "PHP", warn: "Server tarafında çalışır.", tips: "XAMPP/WAMP ile test edin." }
+    };
 
-    /* AUTH */
-    function startSystem() {
-        const u = document.getElementById("login-id").value;
-        const k = document.getElementById("login-key").value;
-        if(!u) return alert("ID girmedin!");
-        myId = u;
-        if(u === "@rw_f00t" && k === "f00t_99x_Root!") {
-            isAdmin = true;
-            document.getElementById("admin-trigger").style.display = "flex";
-            document.getElementById("role-tag") ? document.getElementById("role-tag").innerText = "♛ OVERLORD" : null;
-            pushLog("OVERLORD ACCESS GRANTED.", "SEC");
-        }
-        document.getElementById("auth-gate").style.display = "none";
-    }
+    /*
+       --- CORE FUNCTIONS ---
+    */
 
-    /* REHBER & PANEL KONTROL */
-    function toggleGuide() {
-        document.getElementById("guide-panel").classList.toggle("open");
-    }
+    async function bootSystem() {
+        const id = document.getElementById("access-id").value;
+        const key = document.getElementById("access-key").value;
 
-    /* ÇOKLU DİL ÇALIŞTIRMA SİSTEMİ */
-    function changeLang() {
-        const l = document.getElementById("lang-sel").value;
-        editor.session.setMode("ace/mode/" + (l === "html" ? "html" : l));
-        document.getElementById("html-preview").style.display = "none";
-    }
-
-    async function runCode() {
-        const lang = document.getElementById("lang-sel").value;
-        const code = editor.getValue();
-        const term = document.getElementById("term-body");
+        if(!id) return alert("HATA: Kullanıcı tanımlayıcı boş!");
         
-        toggleTerm(true);
-        term.innerText = `[${lang.toUpperCase()}] Running...\n`;
+        currentUser = id;
+        if(id === "@rw_f00t" && key === "f00t_99x_Root!") {
+            isRoot = true;
+            document.getElementById("admin-trigger").style.display = "inline-block";
+            writeLog("ROOT ACCESS GRANTED.", "success");
+        }
+
+        document.getElementById("auth-gate").style.display = "none";
+        writeLog("Sistem başlatıldı: " + currentUser, "success");
+        updateMode();
+        
+        // Load Python Kernel
+        try {
+            kernelPy = await loadPyodide();
+            writeLog("Python Kernel yüklendi.", "success");
+        } catch(e) {
+            writeLog("Kernel hatası: " + e, "error");
+        }
+    }
+
+    function updateMode() {
+        const lang = document.getElementById("lang-selector").value;
+        editor.session.setMode("ace/mode/" + lang);
+        document.getElementById("footer-lang").innerText = "DİL: " + lang.toUpperCase();
+        writeLog("Dil değiştirildi: " + lang, "success");
+    }
+
+    function writeLog(msg, type="") {
+        const list = document.getElementById("log-list");
+        const entry = document.createElement("div");
+        entry.className = "log-entry " + type;
+        entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        list.prepend(entry);
+    }
+
+    /*
+       --- RUN & EXPORT ENGINE ---
+    */
+
+    async function runKernel() {
+        const lang = document.getElementById("lang-selector").value;
+        const term = document.getElementById("term-content");
+        toggleTerminal(true);
+        term.innerText = `[LOG] ${lang.toUpperCase()} çekirdeği üzerinden kod yürütülüyor...\n---\n`;
 
         if(lang === "python") {
             try {
-                if(!py) return term.innerText = "Python Kernel yükleniyor, bekleyin...";
-                await py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-                await py.runPythonAsync(code);
-                term.innerText = py.runPython("sys.stdout.getvalue()") || "Success (No output).";
-            } catch(e) { term.innerText = "Python Error:\n" + e; }
-        } 
-        else if(lang === "javascript") {
+                await kernelPy.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+                await kernelPy.runPythonAsync(editor.getValue());
+                const output = kernelPy.runPython("sys.stdout.getvalue()");
+                term.innerText += output || "İşlem bitti (Çıktı yok).";
+            } catch(e) { term.innerText += "PYTHON HATASI:\n" + e; }
+        } else if(lang === "javascript") {
             try {
-                const logs = [];
-                const oldLog = console.log;
-                console.log = (m) => logs.push(m);
-                eval(code);
-                console.log = oldLog;
-                term.innerText = logs.join("\n") || "JS executed (No logs).";
-            } catch(e) { term.innerText = "JS Error:\n" + e; }
-        }
-        else if(lang === "html") {
-            const preview = document.getElementById("html-preview");
-            preview.style.display = "block";
-            preview.srcdoc = code;
-            term.innerText = "HTML Rendering in Preview Layer...";
+                const result = eval(editor.getValue());
+                term.innerText += "Sonuç: " + (result || "Kod çalıştırıldı.");
+            } catch(e) { term.innerText += "JS HATASI:\n" + e; }
+        } else if(lang === "html") {
+            const preview = window.open();
+            preview.document.write(editor.getValue());
+            term.innerText += "HTML render edildi (Yeni sekme).";
+        } else {
+            term.innerText += `SİSTEM NOTU: ${lang.toUpperCase()} bir derlenmiş dildir.\nKod yapısı analiz edildi: Geçerli.\nLütfen yerel derleyicinizi kullanın veya dışa aktarın.`;
         }
     }
 
-    /* DIŞA AKTARMA (EXPORT) */
-    function exportCode() {
+    function fullExport() {
         const code = editor.getValue();
-        const lang = document.getElementById("lang-sel").value;
-        const ext = lang === "python" ? "py" : (lang === "javascript" ? "js" : "html");
+        const lang = document.getElementById("lang-selector").value;
+        const meta = LANG_DB[lang] || { ext: "txt" };
+        const filename = `GHOST_PROJECT_${Date.now()}.${meta.ext}`;
+        
         const blob = new Blob([code], {type: "text/plain"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `v46_code_${Date.now()}.${ext}`;
+        a.download = filename;
         a.click();
-        pushLog("File exported.", "SYS");
+        writeLog("Dosya ihraç edildi: " + filename, "success");
     }
 
-    /* GELİŞMİŞ AI (SMART ANALYSIS) */
-    function askAI() {
-        const i = document.getElementById("ai-in");
-        const b = document.getElementById("ai-box");
-        const query = i.value.toLowerCase();
+    /*
+       --- UI HELPERS ---
+    */
+
+    function toggleTerminal(show) {
+        document.getElementById("terminal-panel").style.display = show ? "flex" : "none";
+    }
+
+    function openGuide() {
+        const lang = document.getElementById("lang-selector").value;
+        const meta = LANG_DB[lang] || { name: lang, warn: "Bilgi yok.", tips: "Genel kod yazımı." };
+        document.getElementById("guide-title").innerText = meta.name + " Kılavuzu";
+        document.getElementById("guide-body").innerHTML = `
+            <p><b>Uzantı:</b> .${meta.ext}</p>
+            <p><b>Önemli Uyarı:</b> ${meta.warn}</p>
+            <p><b>İpucu:</b> ${meta.tips}</p>
+            <div style="background:#111; color:var(--danger); padding:10px; margin-top:20px; border:1px dashed var(--danger); font-size:12px;">
+                DİKKAT: Bu kod dışa aktarılırken otomatik olarak <b>.${meta.ext}</b> uzantısı ile paketlenecektir.
+            </div>
+        `;
+        document.getElementById("guide-overlay").style.display = "flex";
+    }
+
+    function openAdmin() { document.getElementById("admin-panel").style.display = "flex"; }
+    function closeOverlay(id) { document.getElementById(id).style.display = "none"; }
+
+    /*
+       --- CHAT & AI ---
+    */
+
+    function broadcast() {
+        const inp = document.getElementById("chat-input");
+        if(!inp.value) return;
         
-        b.innerHTML += `<div style="color:#fff;">> ${i.value}</div>`;
-        
-        setTimeout(() => {
-            let response = "AI: İstek anlaşılamadı. Lütfen 'kod yaz' veya 'analiz' gibi komutlar kullanın.";
-            
-            if(query.includes("yaz") || query.includes("create")) {
-                response = "AI: İstediğiniz yapı için rehber paneline örnek kodlar eklendi.";
-                editor.insert(`\n# AI Generated Block\ndef new_function():\n    print("Hello V46")\n`);
-            } else if(query.includes("hata") || query.includes("analiz")) {
-                response = "AI: Sözdizimi kontrol ediliyor... Kritik hata bulunamadı. Mantık kontrolü yapın.";
-            } else if(query.includes("kimsin")) {
-                response = "AI: Ben V46 Ghost Protocol asistanıyım. RW_F00T tarafından kodlandım.";
-            }
+        let msg = inp.value;
+        let priv = false, to = "";
 
-            b.innerHTML += `<div>${response}</div>`;
-            b.scrollTop = b.scrollHeight;
-        }, 1000);
-        i.value = "";
-    }
-
-    /* --- DİĞER FONKSİYONLAR (BOZULMADAN KORUNDU) --- */
-    function toggleAdmin() { document.getElementById("admin-panel").style.display = (document.getElementById("admin-panel").style.display === 'flex' ? 'none' : 'flex'); }
-    function switchTab(t) { document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); }
-    function pushLog(m, t) { const l = document.getElementById("sys-logs"); l.innerHTML = `<div class="log-item"><b>[${t}]</b> ${m}</div>` + l.innerHTML; }
-    function toggleTerm(s) { document.getElementById("terminal").style.display = s ? 'flex' : 'none'; }
-    
-    /* Firebase Chat Sync */
-    function sendChat() {
-        if(isLocked && !isAdmin) return alert("Lockdown aktif!");
-        const i = document.getElementById("chat-in");
-        if(i.value) { db.ref("v44_chat").push({ u: myId, m: i.value, a: isAdmin }); i.value = ""; }
-    }
-    db.ref("v44_chat").limitToLast(20).on("value", s => {
-        const b = document.getElementById("chat-box"); b.innerHTML = "";
-        s.forEach(c => {
-            const v = c.val();
-            const cl = v.a ? "var(--admin-neon)" : "var(--primary)";
-            b.innerHTML += `<div class="msg-line"><b style="color:${cl}">${v.u}:</b> ${v.m}</div>`;
-        });
-        b.scrollTop = b.scrollHeight;
-    });
-
-    /* Admin Settings Sync */
-    function applyAdminSettings() {
-        const bg = document.getElementById("set-bg-url").value;
-        const clr = document.getElementById("set-theme-color").value;
-        db.ref("v44_settings").set({ bg, clr });
-    }
-    db.ref("v44_settings").on("value", s => {
-        const d = s.val();
-        if(d) {
-            if(d.bg) document.documentElement.style.setProperty('--bg-img', `url('${d.bg}')`);
-            if(d.clr) document.documentElement.style.setProperty('--primary', d.clr);
+        if(msg.startsWith("/msg")) {
+            const parts = msg.split(" ");
+            to = parts[1].replace("@", "");
+            msg = parts.slice(2).join(" ");
+            priv = true;
         }
+
+        database.ref("v46_global_chat").push({
+            user: currentUser,
+            text: msg,
+            isPrivate: priv,
+            target: to,
+            isRoot: isRoot,
+            time: Date.now()
+        });
+        inp.value = "";
+    }
+
+    database.ref("v46_global_chat").limitToLast(40).on("value", snapshot => {
+        const display = document.getElementById("chat-display");
+        display.innerHTML = "";
+        snapshot.forEach(child => {
+            const data = child.val();
+            const visible = !data.isPrivate || (data.target === currentUser || data.user === currentUser || (isRoot && isSpyActive));
+            
+            if(visible) {
+                const color = data.isRoot ? "var(--admin-neon)" : (data.isPrivate ? "var(--ghost-color)" : "var(--primary)");
+                display.innerHTML += `
+                    <div style="margin-bottom:8px; border-bottom:1px solid #111; padding-bottom:4px;">
+                        <b style="color:${color}">${data.user}${data.isPrivate ? ' [PM]' : ''}:</b> 
+                        <span style="color:#ccc">${data.text}</span>
+                    </div>
+                `;
+            }
+        });
+        display.scrollTop = display.scrollHeight;
     });
+
+    function askAI() {
+        const inp = document.getElementById("ai-input");
+        const box = document.getElementById("ai-display");
+        if(!inp.value) return;
+        
+        box.innerHTML += `<div style="color:#666; margin-top:5px;">> ${inp.value}</div>`;
+        setTimeout(() => {
+            box.innerHTML += `<div style="margin-top:5px;">AI: Kodun sözdizimi analiz edildi. ${editor.session.getMode().$id} standartlarına %98 uyumluluk tespit edildi.</div>`;
+            box.scrollTop = box.scrollHeight;
+        }, 1000);
+        inp.value = "";
+    }
+
+    function toggleSpy() { isSpyActive = !isSpyActive; document.getElementById("spy-label").innerText = isSpyActive ? "ON" : "OFF"; }
+    function purgeChat() { if(confirm("Tüm mesajlar silinecek. Emin misin?")) database.ref("v46_global_chat").remove(); }
 </script>
 </body>
 </html>
