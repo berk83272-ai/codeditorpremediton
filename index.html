@@ -2,8 +2,10 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>CodEditor | V36 SECURE ARCHITECT</title>
+    <title>CodEditor | V40 GOD MODE - SYSTEM OVERLORD</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -12,267 +14,539 @@
     <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-database-compat.js"></script>
 
     <style>
+        /* ==============================================
+           SİSTEM TEMEL AYARLARI VE DEĞİŞKENLER (CSS)
+           ==============================================
+        */
         :root {
-            --theme: #00d4ff; /* Üye Mavisi */
-            --bg: #030303;
-            --panel: #0a0a0a;
-            --accent: #ffcc00;
-            --font: 'Courier New', monospace;
+            --primary: #00d4ff; /* Üye Mavisi */
+            --admin-neon: #00ff41; /* Admin Yeşili */
+            --bg-deep: #020202;
+            --bg-panel: #0a0a0a;
+            --text-main: #e0e0e0;
+            --text-dim: #555;
+            --danger: #ff003c;
+            --warning: #ffcc00;
+            --ai-purple: #b080ff;
+            --border-color: #1a1a1a;
+            --matrix-glow: rgba(0, 212, 255, 0.2);
         }
 
-        /* ADMIN MODU (YEŞİL) */
-        body.root-access { --theme: #00ff41; }
-
-        body, html { margin: 0; padding: 0; background: var(--bg); color: #eee; font-family: var(--font); height: 100vh; overflow: hidden; }
-
-        /* RGB SİSTEM ÇERÇEVESİ */
-        .sys-frame {
-            position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-            border: 3px solid var(--theme); transition: 0.8s;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+        /* ADMIN MODU AKTİFLEŞTİĞİNDE RENKLER DEĞİŞİR */
+        body.admin-root-active {
+            --primary: var(--admin-neon);
+            --matrix-glow: rgba(0, 255, 65, 0.2);
         }
 
-        /* GİRİŞ EKRANI */
+        /* GENEL SIFIRLAMA VE ANTİ-SELECTION */
+        * {
+            box-sizing: border-box;
+            outline: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none; /* Metin seçimi yasaklandı */
+        }
+
+        /* SADECE EDİTÖR VE GİRDİ ALANLARINDA YAZI SEÇİMİNE İZİN VER */
+        #ace-editor, .control-input, textarea, #term-body, .selectable {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100vh; width: 100vw;
+            background-color: var(--bg-deep); color: var(--text-main);
+            font-family: 'Courier New', monospace; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        /* ARKA PLAN TARAMA ÇİZGİSİ EFEKTİ */
+        body::before {
+            content: " ";
+            position: fixed; top: 0; left: 0; width: 100%; height: 2px;
+            background: rgba(0, 212, 255, 0.1);
+            z-index: 99999; pointer-events: none;
+            animation: scanline 8s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { top: 0; } 100% { top: 100%; }
+        }
+
+        /* --- [ SİSTEM ÇERÇEVESİ ] --- */
+        .sys-border {
+            position: fixed; inset: 0; border: 2px solid var(--primary);
+            pointer-events: none; z-index: 10000;
+            box-shadow: inset 0 0 30px rgba(0,0,0,1);
+            transition: border-color 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- [ AUTH GATE - GİRİŞ EKRANI ] --- */
         #auth-gate {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
+            position: fixed; inset: 0; background: #000; z-index: 20000;
             display: flex; justify-content: center; align-items: center;
         }
-        .gate-box {
-            width: 500px; padding: 40px; background: var(--panel); border: 2px solid var(--theme);
-            border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,1);
-        }
-        .yellow-alert {
-            border: 1px dashed var(--accent); color: var(--accent); padding: 15px;
-            font-size: 12px; margin-bottom: 20px; text-align: left; background: rgba(255,204,0,0.03);
+
+        .auth-container {
+            width: 600px; padding: 60px; background: var(--bg-panel);
+            border: 4px solid var(--primary); border-radius: 30px;
+            text-align: center; box-shadow: 0 0 150px var(--matrix-glow);
         }
 
-        .gate-input {
-            width: 100%; padding: 15px; margin-bottom: 10px; background: #000;
-            border: 1px solid #222; color: var(--theme); font-weight: bold; outline: none;
-        }
-        .gate-btn {
-            width: 100%; padding: 15px; background: var(--theme); color: #000;
-            border: none; font-weight: 900; cursor: pointer; transition: 0.3s;
+        .auth-container h1 {
+            font-size: 36px; color: var(--primary); margin: 0 0 10px 0;
+            letter-spacing: 10px; text-shadow: 0 0 20px var(--primary);
         }
 
-        /* HEADER */
+        .security-alert {
+            background: rgba(255, 0, 0, 0.05); border: 1px dashed var(--danger);
+            color: var(--danger); padding: 20px; margin: 30px 0;
+            font-size: 13px; text-align: left; line-height: 1.6;
+        }
+
+        .auth-input {
+            width: 100%; padding: 20px; margin-bottom: 20px; background: #000;
+            border: 1px solid #222; color: #fff; font-size: 18px; border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .auth-input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary); }
+
+        .auth-btn {
+            width: 100%; padding: 20px; background: var(--primary); color: #000;
+            border: none; font-weight: 900; font-size: 20px; cursor: pointer;
+            border-radius: 10px; text-transform: uppercase; transition: 0.4s;
+        }
+
+        .auth-btn:hover { background: #fff; transform: scale(1.02); }
+
+        /* --- [ HEADER ] --- */
         header {
-            height: 60px; background: #050505; border-bottom: 2px solid var(--theme);
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            height: 80px; background: #000; border-bottom: 3px solid var(--primary);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 40px; z-index: 5000;
         }
-        .badge { background: var(--theme); color: #000; padding: 4px 10px; font-weight: 900; font-size: 10px; border-radius: 3px; }
 
-        /* MAIN LAYOUT */
-        main { display: grid; grid-template-columns: 220px 1fr 350px; height: calc(100vh - 100px); }
-
-        /* LOGS */
-        .side-logs { background: #000; border-right: 1px solid #111; padding: 10px; font-size: 10px; color: #444; overflow-y: auto; }
-        .log-line b { color: var(--theme); }
-
-        /* EDITOR */
-        #editor-container { position: relative; }
-        #editor { width: 100%; height: 100%; font-size: 14px; }
-
-        /* CHAT & AI PANEL */
-        .side-tools { background: #080808; border-left: 1px solid #111; display: flex; flex-direction: column; }
-        
-        #chat-area { flex: 2; display: flex; flex-direction: column; padding: 10px; border-bottom: 1px solid #111; }
-        .chat-msgs { flex: 1; background: #000; border: 1px solid #1a1a1a; margin-bottom: 8px; overflow-y: auto; padding: 8px; font-size: 12px; }
-        
-        #ai-area { flex: 1.2; padding: 10px; background: #040008; display: flex; flex-direction: column; }
-        .ai-text { flex: 1; color: #b080ff; font-size: 11px; font-style: italic; overflow-y: auto; margin-bottom: 5px; border-left: 2px solid #b080ff; padding-left: 5px; }
-
-        .inp-grp { display: flex; gap: 4px; }
-        .mini-inp { flex: 1; background: #000; border: 1px solid #222; color: #fff; padding: 8px; font-size: 11px; outline: none; }
-        .mini-btn { background: var(--theme); border: none; padding: 0 12px; cursor: pointer; font-weight: bold; }
-
-        /* TERMINAL */
-        #term {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 180px;
-            background: rgba(0,0,0,0.95); border-top: 2px solid var(--theme);
-            display: none; flex-direction: column; z-index: 100;
+        .status-badge {
+            background: #111; color: var(--text-dim); padding: 5px 15px;
+            font-size: 11px; border-radius: 20px; border: 1px solid #222;
         }
-        .term-head { background: var(--theme); color: #000; padding: 5px 10px; font-weight: bold; display: flex; justify-content: space-between; font-size: 12px; }
-        #term-out { flex: 1; padding: 10px; color: var(--theme); overflow-y: auto; font-family: monospace; font-size: 13px; }
 
-        /* REHBER */
-        #guide {
-            position: fixed; top: 0; right: -400px; width: 350px; height: 100%;
-            background: #0a0a0a; border-left: 3px solid var(--theme); z-index: 5000;
-            transition: 0.5s; padding: 30px; box-shadow: -20px 0 50px #000;
+        .nav-btn {
+            background: transparent; color: var(--primary); border: 1px solid var(--primary);
+            padding: 12px 25px; font-size: 12px; font-weight: 900; cursor: pointer;
+            border-radius: 5px; transition: 0.3s; margin-left: 10px;
         }
-        #guide.open { right: 0; }
 
-        footer { height: 40px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; overflow: hidden; }
-        .scroll-msg { animation: scroll 25s linear infinite; white-space: nowrap; color: var(--theme); font-weight: 900; font-size: 13px; }
-        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .nav-btn:hover { background: var(--primary); color: #000; }
+
+        .admin-only-btn { background: var(--danger); color: white; border: none; display: none; }
+
+        /* --- [ MAIN STRUCTURE ] --- */
+        main { display: grid; grid-template-columns: 300px 1fr 420px; flex: 1; overflow: hidden; }
+
+        /* SIDEBAR LOGS */
+        .sidebar-logs {
+            background: #020202; border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 25px; overflow-y: auto;
+        }
+
+        .log-line { font-size: 11px; margin-bottom: 8px; border-left: 2px solid var(--primary); padding-left: 10px; color: #777; }
+        .log-line b { color: var(--primary); }
+
+        /* EDITOR REGION */
+        #editor-region { position: relative; background: #000; }
+        #ace-editor { width: 100%; height: 100%; font-size: 17px; }
+
+        /* TERMINAL AREA */
+        #terminal-box {
+            position: absolute; bottom: 0; width: 100%; height: 280px;
+            background: rgba(0,0,0,0.98); border-top: 4px solid var(--primary);
+            display: none; flex-direction: column; z-index: 1500;
+        }
+
+        .term-head { background: var(--primary); color: #000; padding: 10px 25px; font-weight: 900; display: flex; justify-content: space-between; }
+        #term-body { flex: 1; padding: 25px; overflow-y: auto; color: var(--primary); font-size: 16px; line-height: 1.6; }
+
+        /* TOOLS SIDEBAR */
+        .tools-sidebar { background: #080808; border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .tool-panel { flex: 1; display: flex; flex-direction: column; padding: 25px; border-bottom: 1px solid var(--border-color); }
+        .panel-header { font-size: 13px; font-weight: 900; color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .content-box { flex: 1; background: #000; border: 1px solid #1a1a1a; padding: 15px; overflow-y: auto; font-size: 13px; margin-bottom: 12px; border-radius: 8px; }
+
+        .control-input { width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 5px; font-size: 13px; }
+
+        /* --- [ ADMIN MODAL PANEL ] --- */
+        #admin-panel-ui {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 1000px; height: 750px; background: var(--bg-panel);
+            border: 5px solid var(--admin-neon); z-index: 30000;
+            display: none; flex-direction: column; padding: 50px; border-radius: 30px;
+            box-shadow: 0 0 200px rgba(0, 255, 65, 0.3);
+        }
+
+        .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 30px; }
+        .admin-card { background: #111; border: 1px solid #222; padding: 25px; border-radius: 15px; text-align: center; }
+        .admin-card h3 { color: var(--admin-neon); margin: 0; font-size: 14px; }
+        .admin-card p { font-size: 28px; font-weight: 900; margin: 15px 0; }
+
+        /* --- [ FOOTER ] --- */
+        footer {
+            height: 50px; background: #000; border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; overflow: hidden;
+        }
+
+        .marquee-text {
+            white-space: nowrap; animation: slide 45s linear infinite;
+            color: var(--primary); font-weight: 900; font-size: 14px; text-transform: uppercase;
+        }
+
+        @keyframes slide { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
     </style>
 </head>
 <body id="sys-body">
 
-<div class="sys-frame"></div>
+<div class="sys-border"></div>
 
 <div id="auth-gate">
-    <div class="gate-box">
-        <h2 style="color:var(--theme); margin:0 0 10px 0;">V36 SECURE KERNEL</h2>
-        <div class="yellow-alert">
-            <b>[ GÜVENLİK PROTOKOLÜ ]</b><br>
-            • Admin: <b>@rw_f00t</b> (Şifre güncellendi!)<br>
-            • Üyeler: İsim yazıp şifreyi boş bırakabilir.<br>
-            • Tüm özellikler (AI, Rehber, Python) herkese açıktır.
+    <div class="auth-container">
+        <h1>V40 OVERLORD</h1>
+        <div class="security-alert">
+            <b>[ GÜVENLİK PROTOKOLÜ V4 ]</b><br><br>
+            • Admin Kimliği: <b>@rw_f00t</b><br>
+            • Güvenlik Anahtarı: <b>f00t_99x_Root!</b><br>
+            • Tüm sağ tık ve kopyalama işlemleri engellenmiştir.<br>
+            • Kaynak koduna erişim teşebbüsleri loglanacaktır.
         </div>
-        <input type="text" id="in-user" class="gate-input" placeholder="KOD ADI">
-        <input type="password" id="in-pass" class="gate-input" placeholder="GÜVENLİK ŞİFRESİ">
-        <button class="gate-btn" onclick="checkAuth()">SİSTEME BAĞLAN</button>
-        <div id="auth-info" style="margin-top:10px; font-size:11px; color:#444;">Motor bekleniyor...</div>
+        <input type="text" id="uid" class="auth-input" placeholder="ERİŞİM KİMLİĞİ">
+        <input type="password" id="ukey" class="auth-input" placeholder="GÜVENLİK ANAHTARI">
+        <button class="auth-btn" onclick="startKernel()">SİSTEME GİRİŞ YAP</button>
+        <div id="load-msg" style="margin-top:20px; font-size:12px; color:#444;">Motor hazırlandı.</div>
     </div>
 </div>
 
-<div id="guide">
-    <h3 style="color:var(--theme)">SİSTEM REHBERİ</h3>
-    <div style="font-size:12px; line-height:1.8; color:#888;">
-        <p><b>- Python:</b> Sadece Python seçiliyken ÇALIŞTIR butonu görünür.</p>
-        <p><b>- AI:</b> Sağ alttaki panelden kod analizi isteyebilirsiniz.</p>
-        <p><b>- Chat:</b> Global mesajlaşma tüm kullanıcılar içindir.</p>
-        <p><b>- İndir:</b> Yazdığınız kodu seçili dile göre bilgisayara kaydeder.</p>
+<div id="admin-panel-ui">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h1 style="color:var(--admin-neon); margin:0; letter-spacing:5px;">♛ GOD MODE CONTROL</h1>
+        <button class="nav-btn" style="border-color:red; color:red;" onclick="toggleAdminUI()">PANELİ KAPAT</button>
     </div>
-    <button class="gate-btn" onclick="toggleGuide()" style="margin-top:20px;">KAPAT</button>
+
+    <div class="admin-grid">
+        <div class="admin-card">
+            <h3>BAĞLI KULLANICI</h3>
+            <p id="usr-cnt">01</p>
+        </div>
+        <div class="admin-card">
+            <h3>GÜVENLİK SEVİYESİ</h3>
+            <p style="color:var(--admin-neon);">MAKSİMUM</p>
+        </div>
+        <div class="admin-card">
+            <h3>CPU YÜKÜ (SİM)</h3>
+            <p>12%</p>
+        </div>
+    </div>
+
+    <div style="margin-top:50px; display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+        <div style="background:#050505; padding:30px; border-radius:20px; border:1px solid var(--admin-neon);">
+            <h4 style="color:var(--admin-neon);">KÜRESEL SİSTEM DUYURUSU</h4>
+            <textarea id="adm-msg" class="control-input selectable" style="height:120px; border-color:var(--admin-neon);" placeholder="Tüm kullanıcılara kırmızı uyarı gönder..."></textarea>
+            <button class="auth-btn" style="margin-top:15px; font-size:14px; padding:15px;" onclick="broadcastAlert()">DUYURUYU YAYINLA</button>
+        </div>
+        <div style="background:#050505; padding:30px; border-radius:20px; border:1px solid var(--warning);">
+            <h4 style="color:var(--warning);">KRİTİK İŞLEMLER</h4>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <button class="nav-btn" style="margin:0; width:100%;" onclick="clearSystemLogs()">LOGLARI SIFIRLA</button>
+                <button class="nav-btn" style="margin:0; width:100%;" onclick="location.reload()">KERNAL REBOOT</button>
+                <button class="nav-btn" style="margin:0; width:100%; border-color:var(--ai-purple); color:var(--ai-purple);" onclick="alert('AI Engine Refreshed.')">AI CORE RESET</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
-        <b style="color:var(--theme)">ROOT_V36</b>
-        <span id="u-tag" class="badge">INIT...</span>
+    <div style="display:flex; align-items:center; gap:25px;">
+        <span style="font-size:26px; font-weight:900; color:var(--primary); letter-spacing:3px;">SYSTEM_V40</span>
+        <span id="role-tag" class="status-badge">UNVERIFIED</span>
     </div>
-    <div style="display:flex; gap:8px;">
-        <button class="mini-btn" style="height:35px; color:black;" onclick="toggleGuide()">❓ REHBER</button>
-        <select id="l-sel" class="mini-inp" onchange="updL()" style="width:100px;">
-            <option value="python">Python</option>
-            <option value="javascript">JS</option>
-            <option value="html">HTML</option>
-            <option value="c_cpp">C++</option>
+
+    <div style="display:flex; align-items:center;">
+        <button id="adm-btn" class="nav-btn admin-only-btn" onclick="toggleAdminUI()">♛ ADMIN PANEL</button>
+        <button class="nav-btn" onclick="alert('V40 Rehber: Python seçiliyken RUN aktiftir. Tüm sistem kilitlidir.')">REHBER</button>
+        <select id="lang-set" class="nav-btn" style="background:#000;" onchange="updateMode()">
+            <option value="python">Python 3.11</option>
+            <option value="javascript">JavaScript (ES6)</option>
+            <option value="html">HTML / CSS</option>
         </select>
-        <button id="r-btn" class="mini-btn" style="display:none; background:#fff;" onclick="run()">▶ RUN</button>
-        <button class="mini-btn" style="background:var(--accent);" onclick="dl()">📥 İNDİR</button>
+        <button id="run-cmd" class="nav-btn" style="background:var(--primary); color:black; display:none;" onclick="runSource()">▶ ÇALIŞTIR</button>
+        <button class="nav-btn" style="border-color:var(--warning); color:var(--warning);" onclick="exportFile()">📥 KAYDET</button>
     </div>
 </header>
 
 <main>
-    <div id="log-side" class="side-logs"><div class="log-line"><b>[SYS]</b> Boot sequence...</div></div>
-    
-    <div id="editor-container">
-        <div id="editor"># V36 SECURE EDITION
-# Şifre Koruma: AKTİF
-# Rol Erişimi: TAM ERİŞİM
+    <div class="sidebar-logs" id="log-view">
+        <div class="log-line"><b>[SYS]</b> Kernel loading...</div>
+        <div class="log-line"><b>[SEC]</b> Anti-Inspect active.</div>
+    </div>
 
-print("Sistem güvenli şekilde başlatıldı.")</div>
-        <div id="term">
-            <div class="term-head"><span>TERMINAL_OUTPUT</span><span onclick="toggleT(false)" style="cursor:pointer;">[X]</span></div>
-            <pre id="term-out"></pre>
+    <div id="editor-region">
+        <div id="ace-editor"># V40 GOD MODE EDITION
+# Instagram: @rw_f00t
+# Güvenlik Protokolü: %100
+
+print("Omnipotent komuta merkezi aktif.")</div>
+
+        <div id="terminal-box">
+            <div class="term-head">
+                <span>SYSTEM_CONSOLE_OUTPUT</span>
+                <span style="cursor:pointer;" onclick="toggleTerm(false)">[X]</span>
+            </div>
+            <div id="term-body" class="selectable">>> Kernel online. Bekleniyor...</div>
         </div>
     </div>
 
-    <div class="side-tools">
-        <div id="chat-area">
-            <b style="color:var(--theme); font-size:11px; margin-bottom:5px;">GLOBAL_CHAT</b>
-            <div id="chat-box" class="chat-msgs"></div>
-            <div class="inp-grp">
-                <input type="text" id="chat-in" class="mini-inp" placeholder="Mesaj...">
-                <button class="mini-btn" onclick="send()">></button>
+    <div class="tools-sidebar">
+        <div class="tool-panel">
+            <div class="panel-header">GLOBAL NETWORK CHAT</div>
+            <div id="chat-stream" class="content-box selectable"></div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="chat-msg" class="control-input selectable" placeholder="Mesaj yaz...">
+                <button class="nav-btn" style="margin:0; padding:10px 15px;" onclick="sendToNetwork()">></button>
             </div>
         </div>
-        <div id="ai-area">
-            <b style="color:#b080ff; font-size:11px; margin-bottom:5px;">AI_ASSISTANT</b>
-            <div id="ai-out" class="ai-text">AI: Kod hakkında sorun varsa buradayım.</div>
-            <div class="inp-grp">
-                <input type="text" id="ai-in" class="mini-inp" placeholder="AI'ya sor..." onkeypress="if(event.key=='Enter')ask()">
-                <button class="mini-btn" style="background:#b080ff;" onclick="ask()">?</button>
+
+        <div class="tool-panel" style="background: rgba(176, 128, 255, 0.02);">
+            <div class="panel-header" style="color:var(--ai-purple);">AI_SYNTAX_ASSISTANT</div>
+            <div id="ai-stream" class="content-box selectable" style="border-color:var(--ai-purple); color:var(--ai-purple);">AI: Sistem hazır. Kodlama hakkında her şeyi sorabilirsin.</div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="ai-query" class="control-input selectable" style="border-color:var(--ai-purple);" placeholder="AI'ya danış...">
+                <button class="nav-btn" style="margin:0; border-color:var(--ai-purple); color:var(--ai-purple);" onclick="askAssistant()">?</button>
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    <div class="scroll-msg">+++ SECURITY LEVEL: HIGH +++ ENCRYPTION: ACTIVE +++ ALL USERS: FULL ACCESS +++ INSTAGRAM: @RW_F00T +++ V36 UPDATE READY +++</div>
+    <div class="marquee-text">
+        +++ SYSTEM STATUS: STABLE +++ SECURITY LAYER: GOD MODE +++ ENCRYPTION: AES-512 +++ ALL FUNCTIONS OPERATIONAL +++ INSTAGRAM: @RW_F00T +++ KERNEL V40.1 +++ NO UNAUTHORIZED ACCESS +++
+    </div>
 </footer>
 
 <script>
-    // F-Config
-    const fc = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", authDomain: "prem-d18e3.firebaseapp.com", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3", storageBucket: "prem-d18e3.firebasestorage.app", messagingSenderId: "828611092580", appId: "1:828611092580:web:5f8e2c7c501c63a2d73f71" };
-    firebase.initializeApp(fc); const db = firebase.database();
+    /* ==============================================
+       ANTİ-DENETLEME VE GÜVENLİK MOTORU (SÜPER KORUMA)
+       ==============================================
+    */
+    
+    // 1. Sağ Tık Engelleme
+    document.addEventListener('contextmenu', e => e.preventDefault());
 
-    let py = null;
-    let user = "Guest";
-    const ed = ace.edit("editor");
-    ed.setTheme("ace/theme/terminal");
-    ed.session.setMode("ace/mode/python");
+    // 2. Kısayol Tuşlarını Kapatma (F12, Ctrl+U, Ctrl+Shift+I vb.)
+    document.onkeydown = function(e) {
+        // F12 tuşu
+        if (e.keyCode == 123) return false;
+        // Ctrl + Shift + I (Denetle)
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+        // Ctrl + Shift + J (Konsol)
+        if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+        // Ctrl + U (Kaynak Kod)
+        if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        // Ctrl + S (Kaydet)
+        if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+    };
 
-    async function init() {
-        try { py = await loadPyodide(); document.getElementById("r-btn").style.display="block"; document.getElementById("auth-info").innerText="Bağlantı Kurulabilir."; document.getElementById("auth-info").style.color="#0f0"; } 
-        catch(e) { console.error(e); }
-    }
-    init();
+    // 3. Sürüklemeyi Engelleme
+    document.addEventListener('dragstart', e => e.preventDefault());
 
-    function checkAuth() {
-        const u = document.getElementById("in-user").value;
-        const p = document.getElementById("in-pass").value;
-        if(!u) return alert("İsim yaz!");
+    /* ==============================================
+       SİSTEM ÇEKİRDEĞİ VE FONKSİYONLAR
+       ==============================================
+    */
 
-        // Güvenli Şifre Kontrolü (f00t_99x_Root!)
-        if(u === "@rw_f00t" && p === "f00t_99x_Root!") {
-            document.getElementById("sys-body").classList.add("root-access");
-            document.getElementById("u-tag").innerText = "ROOT ADMIN";
-            user = "@rw_f00t";
-        } else {
-            document.getElementById("u-tag").innerText = "MEMBER";
-            user = u;
-        }
-        document.getElementById("auth-gate").style.display="none";
-        log("Bağlantı kuruldu: " + user);
-    }
+    // Firebase Ayarları
+    const fbCfg = {
+        apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA",
+        databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com",
+        projectId: "prem-d18e3"
+    };
+    firebase.initializeApp(fbCfg);
+    const rtdb = firebase.database();
 
-    function log(m) {
-        const l = document.getElementById("log-side");
-        l.innerHTML = `<div class="log-line"><b>[${new Date().toLocaleTimeString()}]</b> ${m}</div>` + l.innerHTML;
-    }
+    let pyEngine = null;
+    let username = "Guest";
+    let rootEnabled = false;
 
-    async function run() {
-        toggleT(true); const o = document.getElementById("term-out"); o.innerText = "Running...";
-        try {
-            await py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-            await py.runPythonAsync(ed.getValue());
-            o.innerText = py.runPython("sys.stdout.getvalue()") || "Done (No Output).";
-        } catch(e) { o.innerText = "Error: " + e; }
-    }
-
-    function send() {
-        const i = document.getElementById("chat-in");
-        if(i.value) { db.ref("global_chat").push({ u: user, m: i.value, t: Date.now() }); i.value=""; }
-    }
-
-    db.ref("global_chat").limitToLast(15).on("value", s => {
-        const b = document.getElementById("chat-box"); b.innerHTML = "";
-        s.forEach(c => { const d = c.val(); b.innerHTML += `<div><b style="color:${d.u=='@rw_f00t'?'#0f0':'#0cf'}">${d.u}:</b> ${d.m}</div>`; });
-        b.scrollTop = b.scrollHeight;
+    // Ace Editor Başlatma
+    const editor = ace.edit("ace-editor");
+    editor.setTheme("ace/theme/terminal");
+    editor.session.setMode("ace/mode/python");
+    editor.setOptions({
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true,
+        showPrintMargin: false,
+        fontFamily: "Courier New"
     });
 
-    function ask() {
-        const i = document.getElementById("ai-in"); const o = document.getElementById("ai-out");
-        if(!i.value) return;
-        o.innerText = "AI düşünüyor...";
-        setTimeout(() => {
-            const t = i.value.toLowerCase();
-            if(t.includes("hata")) o.innerText = "AI: Kodun yapısını ve girintileri kontrol etmelisin.";
-            else if(t.includes("merhaba")) o.innerText = "AI: Merhaba! Sana nasıl yardımcı olabilirim?";
-            else o.innerText = "AI: Bu isteğin V37 güncellemesiyle aktifleşecek.";
-            i.value = "";
-        }, 1000);
+    // Python Yükleme (Pyodide)
+    async function initPython() {
+        try {
+            updateLogs("Python engine loading...", "INIT");
+            pyEngine = await loadPyodide();
+            document.getElementById("run-cmd").style.display = "inline-block";
+            document.getElementById("load-msg").innerText = "Kernel Başlatıldı.";
+            document.getElementById("load-msg").style.color = "#00ff41";
+            updateLogs("Python 3.11 Ready.", "SUCCESS");
+        } catch (e) {
+            updateLogs("Python Load Failed!", "ERROR");
+        }
+    }
+    initPython();
+
+    // Giriş Protokolü
+    function startKernel() {
+        const id = document.getElementById("uid").value;
+        const key = document.getElementById("ukey").value;
+
+        if(!id) return alert("Kimlik belirtilmedi!");
+
+        username = id;
+
+        // ADMIN KONTROLÜ
+        if(id === "@rw_f00t" && key === "f00t_99x_Root!") {
+            rootEnabled = true;
+            document.body.classList.add("admin-root-active");
+            document.getElementById("role-tag").innerText = "♛ ROOT ADMIN";
+            document.getElementById("role-tag").style.color = "#00ff41";
+            document.getElementById("adm-btn").style.display = "block";
+            updateLogs("ADMIN ACCESS GRANTED.", "SEC");
+        } else {
+            document.getElementById("role-tag").innerText = "MEMBER";
+            updateLogs("User Session: " + id, "AUTH");
+        }
+
+        document.getElementById("auth-gate").style.display = "none";
     }
 
-    function toggleT(s) { document.getElementById("term").style.display = s ? "flex" : "none"; }
-    function toggleGuide() { document.getElementById("guide").classList.toggle("open"); }
-    function updL() { const l = document.getElementById("l-sel").value; ed.session.setMode("ace/mode/"+l); document.getElementById("r-btn").style.display = (l=="python"?"block":"none"); }
-    function dl() { const b = new Blob([ed.getValue()], {type:"text/plain"}); const a = document.createElement("a"); a.href=URL.createObjectURL(b); a.download="code_"+Date.now()+".txt"; a.click(); }
+    // Kod Çalıştırma
+    async function runSource() {
+        toggleTerm(true);
+        const out = document.getElementById("term-body");
+        out.innerText = ">> Executing code...\n";
+
+        try {
+            await pyEngine.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+            await pyEngine.runPythonAsync(editor.getValue());
+            const result = pyEngine.runPython("sys.stdout.getvalue()");
+            out.innerText = result || ">> Execution finished (No output).";
+            updateLogs("Code executed.", "PY");
+        } catch (e) {
+            out.innerText = ">> RUNTIME ERROR:\n" + e;
+            updateLogs("Execution error!", "ERR");
+        }
+    }
+
+    // Chat Sistemi
+    function sendToNetwork() {
+        const inp = document.getElementById("chat-msg");
+        if(inp.value) {
+            rtdb.ref("v40_global_chat").push({
+                u: username,
+                m: inp.value,
+                adm: rootEnabled
+            });
+            inp.value = "";
+        }
+    }
+
+    rtdb.ref("v40_global_chat").limitToLast(30).on("value", snap => {
+        const stream = document.getElementById("chat-stream");
+        stream.innerHTML = "";
+        snap.forEach(child => {
+            const data = child.val();
+            const color = data.adm ? "var(--admin-neon)" : "var(--primary)";
+            stream.innerHTML += `<div><b style="color:${color}">${data.adm?'[ROOT] ':''}${data.u}:</b> ${data.m}</div>`;
+        });
+        stream.scrollTop = stream.scrollHeight;
+    });
+
+    // Duyuru Sistemi
+    function broadcastAlert() {
+        const m = document.getElementById("adm-msg").value;
+        if(m) {
+            rtdb.ref("v40_system_alert").set({ text: m, time: Date.now() });
+            document.getElementById("adm-msg").value = "";
+            alert("Sistem duyurusu gönderildi.");
+        }
+    }
+
+    rtdb.ref("v40_system_alert").on("value", snap => {
+        const val = snap.val();
+        if(val) {
+            const box = document.createElement("div");
+            box.style = "position:fixed; top:50px; left:50%; transform:translateX(-50%); background:red; color:white; padding:25px; z-index:55000; border:3px solid white; font-weight:bold; text-align:center; box-shadow:0 0 100px #000;";
+            box.innerHTML = `!!! KRİTİK SİSTEM MESAJI !!!<br><br>${val.text}<br><br><button onclick="this.parentElement.remove()" style="padding:10px 20px; cursor:pointer;">ANLADIM</button>`;
+            document.body.appendChild(box);
+        }
+    });
+
+    // Yapay Zeka
+    function askAssistant() {
+        const q = document.getElementById("ai-query");
+        const s = document.getElementById("ai-stream");
+        if(!q.value) return;
+
+        const msg = q.value;
+        s.innerHTML += `<div style="color:#fff; margin-top:10px;">> ${msg}</div>`;
+        s.innerHTML += `<div id="typing">AI analiz ediyor...</div>`;
+        s.scrollTop = s.scrollHeight;
+        q.value = "";
+
+        setTimeout(() => {
+            const typing = document.getElementById("typing");
+            if(typing) typing.remove();
+            let res = "AI: Kod yapısı V40 standartlarına uygun.";
+            if(msg.toLowerCase().includes("hata")) res = "AI: Lütfen terminaldeki Traceback çıktısını kontrol edin.";
+            s.innerHTML += `<div>${res}</div>`;
+            s.scrollTop = s.scrollHeight;
+        }, 1500);
+    }
+
+    // Yardımcılar
+    function updateLogs(m, t="INFO") {
+        const v = document.getElementById("log-view");
+        const time = new Date().toLocaleTimeString();
+        v.innerHTML = `<div class="log-line"><b>[${t}]</b> [${time}] ${m}</div>` + v.innerHTML;
+    }
+
+    function toggleAdminUI() {
+        const p = document.getElementById("admin-panel-ui");
+        p.style.display = (p.style.display === "flex") ? "none" : "flex";
+    }
+
+    function toggleTerm(state) {
+        document.getElementById("terminal-box").style.display = state ? "flex" : "none";
+    }
+
+    function updateMode() {
+        const l = document.getElementById("lang-set").value;
+        editor.session.setMode("ace/mode/" + l);
+        document.getElementById("run-cmd").style.display = (l === "python") ? "inline-block" : "none";
+    }
+
+    function clearSystemLogs() {
+        document.getElementById("log-view").innerHTML = `<div class="log-line"><b>[SYS]</b> Logs cleared by Overlord.</div>`;
+    }
+
+    function exportFile() {
+        const blob = new Blob([editor.getValue()], {type: "text/plain"});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "v40_source_" + Date.now() + ".py";
+        link.click();
+    }
 </script>
 </body>
 </html>
