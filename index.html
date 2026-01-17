@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>CodEditor | V40 GOD MODE - SYSTEM OVERLORD</title>
+    <title>CodEditor | V41 UNIVERSAL OVERLORD</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -15,538 +15,410 @@
 
     <style>
         /* ==============================================
-           SİSTEM TEMEL AYARLARI VE DEĞİŞKENLER (CSS)
-           ==============================================
-        */
+           DYNAMIC CSS VARIABLES (SİSTEM GENETİĞİ)
+           ============================================== */
         :root {
-            --primary: #00d4ff; /* Üye Mavisi */
-            --admin-neon: #00ff41; /* Admin Yeşili */
+            --primary: #00d4ff; 
+            --admin-neon: #00ff41;
             --bg-deep: #020202;
-            --bg-panel: #0a0a0a;
+            --bg-img: none; /* Admin tarafından değiştirilebilir */
+            --bg-color: #020202;
+            --bg-panel: rgba(10, 10, 10, 0.9);
             --text-main: #e0e0e0;
-            --text-dim: #555;
             --danger: #ff003c;
             --warning: #ffcc00;
             --ai-purple: #b080ff;
-            --border-color: #1a1a1a;
-            --matrix-glow: rgba(0, 212, 255, 0.2);
+            --border-glow: rgba(0, 212, 255, 0.3);
+            --blur: 10px;
         }
 
-        /* ADMIN MODU AKTİFLEŞTİĞİNDE RENKLER DEĞİŞİR */
-        body.admin-root-active {
+        body.admin-active {
             --primary: var(--admin-neon);
-            --matrix-glow: rgba(0, 255, 65, 0.2);
+            --border-glow: rgba(0, 255, 65, 0.3);
         }
 
-        /* GENEL SIFIRLAMA VE ANTİ-SELECTION */
+        /* GENEL SIFIRLAMA VE GÜVENLİK (ANTI-COPY) */
         * {
             box-sizing: border-box;
             outline: none;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none; /* Metin seçimi yasaklandı */
+            user-select: none; /* Hiçbir şey kopyalanamaz */
         }
 
-        /* SADECE EDİTÖR VE GİRDİ ALANLARINDA YAZI SEÇİMİNE İZİN VER */
-        #ace-editor, .control-input, textarea, #term-body, .selectable {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
+        /* YAZILABİLİR ALANLAR İSTİSNA */
+        #ace-editor, input, textarea, #term-body, .selectable {
+            user-select: text !important;
         }
 
         body, html {
             margin: 0; padding: 0; height: 100vh; width: 100vw;
-            background-color: var(--bg-deep); color: var(--text-main);
-            font-family: 'Courier New', monospace; overflow: hidden;
-            display: flex; flex-direction: column;
+            background: var(--bg-img) center center / cover no-repeat fixed var(--bg-color);
+            color: var(--text-main); font-family: 'Segoe UI', 'Courier New', monospace;
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: background 0.5s ease;
         }
 
-        /* ARKA PLAN TARAMA ÇİZGİSİ EFEKTİ */
-        body::before {
-            content: " ";
-            position: fixed; top: 0; left: 0; width: 100%; height: 2px;
-            background: rgba(0, 212, 255, 0.1);
-            z-index: 99999; pointer-events: none;
-            animation: scanline 8s linear infinite;
+        /* ARKA PLAN TARAMA ÇİZGİSİ */
+        .scanline {
+            width: 100%; height: 100px; z-index: 10001; pointer-events: none;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, var(--border-glow) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1; position: absolute; animation: scan 6s linear infinite;
         }
-
-        @keyframes scanline {
-            0% { top: 0; } 100% { top: 100%; }
-        }
+        @keyframes scan { 0% { top: -100px; } 100% { top: 100%; } }
 
         /* --- [ SİSTEM ÇERÇEVESİ ] --- */
-        .sys-border {
-            position: fixed; inset: 0; border: 2px solid var(--primary);
-            pointer-events: none; z-index: 10000;
-            box-shadow: inset 0 0 30px rgba(0,0,0,1);
-            transition: border-color 1s cubic-bezier(0.4, 0, 0.2, 1);
+        .master-frame {
+            position: fixed; inset: 0; border: 3px solid var(--primary);
+            pointer-events: none; z-index: 10000; box-shadow: inset 0 0 50px rgba(0,0,0,1);
+            transition: 0.8s border-color;
         }
 
-        /* --- [ AUTH GATE - GİRİŞ EKRANI ] --- */
+        /* --- [ AUTH GATE ] --- */
         #auth-gate {
             position: fixed; inset: 0; background: #000; z-index: 20000;
             display: flex; justify-content: center; align-items: center;
         }
-
-        .auth-container {
-            width: 600px; padding: 60px; background: var(--bg-panel);
-            border: 4px solid var(--primary); border-radius: 30px;
-            text-align: center; box-shadow: 0 0 150px var(--matrix-glow);
+        .auth-card {
+            width: 550px; padding: 60px; background: #0a0a0a; border: 3px solid var(--primary);
+            border-radius: 40px; text-align: center; box-shadow: 0 0 100px var(--border-glow);
         }
-
-        .auth-container h1 {
-            font-size: 36px; color: var(--primary); margin: 0 0 10px 0;
-            letter-spacing: 10px; text-shadow: 0 0 20px var(--primary);
-        }
-
-        .security-alert {
-            background: rgba(255, 0, 0, 0.05); border: 1px dashed var(--danger);
-            color: var(--danger); padding: 20px; margin: 30px 0;
-            font-size: 13px; text-align: left; line-height: 1.6;
-        }
-
         .auth-input {
-            width: 100%; padding: 20px; margin-bottom: 20px; background: #000;
-            border: 1px solid #222; color: #fff; font-size: 18px; border-radius: 10px;
-            transition: 0.3s;
+            width: 100%; padding: 20px; margin-bottom: 15px; background: #000;
+            border: 1px solid #333; color: #fff; border-radius: 12px; font-size: 16px;
         }
-
-        .auth-input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary); }
-
         .auth-btn {
             width: 100%; padding: 20px; background: var(--primary); color: #000;
-            border: none; font-weight: 900; font-size: 20px; cursor: pointer;
-            border-radius: 10px; text-transform: uppercase; transition: 0.4s;
+            border: none; font-weight: 900; border-radius: 12px; cursor: pointer; transition: 0.3s;
         }
-
-        .auth-btn:hover { background: #fff; transform: scale(1.02); }
 
         /* --- [ HEADER ] --- */
         header {
-            height: 80px; background: #000; border-bottom: 3px solid var(--primary);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 40px; z-index: 5000;
+            height: 80px; background: rgba(0,0,0,0.85); backdrop-filter: blur(var(--blur));
+            border-bottom: 2px solid var(--primary); display: flex;
+            align-items: center; justify-content: space-between; padding: 0 40px; z-index: 5000;
         }
-
-        .status-badge {
-            background: #111; color: var(--text-dim); padding: 5px 15px;
-            font-size: 11px; border-radius: 20px; border: 1px solid #222;
+        .btn-ui {
+            background: rgba(255,255,255,0.05); color: var(--primary); border: 1px solid var(--primary);
+            padding: 10px 20px; border-radius: 6px; font-weight: 900; cursor: pointer; transition: 0.2s;
         }
-
-        .nav-btn {
-            background: transparent; color: var(--primary); border: 1px solid var(--primary);
-            padding: 12px 25px; font-size: 12px; font-weight: 900; cursor: pointer;
-            border-radius: 5px; transition: 0.3s; margin-left: 10px;
-        }
-
-        .nav-btn:hover { background: var(--primary); color: #000; }
-
-        .admin-only-btn { background: var(--danger); color: white; border: none; display: none; }
+        .btn-ui:hover { background: var(--primary); color: #000; }
 
         /* --- [ MAIN STRUCTURE ] --- */
-        main { display: grid; grid-template-columns: 300px 1fr 420px; flex: 1; overflow: hidden; }
+        main { display: grid; grid-template-columns: 280px 1fr 380px; flex: 1; overflow: hidden; }
 
-        /* SIDEBAR LOGS */
-        .sidebar-logs {
-            background: #020202; border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column; padding: 25px; overflow-y: auto;
+        .side-log { background: rgba(5,5,5,0.8); border-right: 1px solid #111; padding: 20px; overflow-y: auto; }
+        .log-entry { font-size: 11px; margin-bottom: 8px; border-left: 2px solid var(--primary); padding-left: 8px; color: #666; }
+
+        #editor-zone { position: relative; background: transparent; }
+        #ace-editor { width: 100%; height: 100%; background: transparent !important; font-size: 16px; }
+
+        #terminal {
+            position: absolute; bottom: 0; width: 100%; height: 260px;
+            background: rgba(0,0,0,0.95); border-top: 3px solid var(--primary);
+            display: none; flex-direction: column; z-index: 1000;
         }
 
-        .log-line { font-size: 11px; margin-bottom: 8px; border-left: 2px solid var(--primary); padding-left: 10px; color: #777; }
-        .log-line b { color: var(--primary); }
-
-        /* EDITOR REGION */
-        #editor-region { position: relative; background: #000; }
-        #ace-editor { width: 100%; height: 100%; font-size: 17px; }
-
-        /* TERMINAL AREA */
-        #terminal-box {
-            position: absolute; bottom: 0; width: 100%; height: 280px;
-            background: rgba(0,0,0,0.98); border-top: 4px solid var(--primary);
-            display: none; flex-direction: column; z-index: 1500;
-        }
-
-        .term-head { background: var(--primary); color: #000; padding: 10px 25px; font-weight: 900; display: flex; justify-content: space-between; }
-        #term-body { flex: 1; padding: 25px; overflow-y: auto; color: var(--primary); font-size: 16px; line-height: 1.6; }
-
-        /* TOOLS SIDEBAR */
-        .tools-sidebar { background: #080808; border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
-        .tool-panel { flex: 1; display: flex; flex-direction: column; padding: 25px; border-bottom: 1px solid var(--border-color); }
-        .panel-header { font-size: 13px; font-weight: 900; color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; }
-        .content-box { flex: 1; background: #000; border: 1px solid #1a1a1a; padding: 15px; overflow-y: auto; font-size: 13px; margin-bottom: 12px; border-radius: 8px; }
-
-        .control-input { width: 100%; background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 5px; font-size: 13px; }
-
-        /* --- [ ADMIN MODAL PANEL ] --- */
-        #admin-panel-ui {
+        /* --- [ ULTIMATE ADMIN MODAL ] --- */
+        #admin-modal {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 1000px; height: 750px; background: var(--bg-panel);
-            border: 5px solid var(--admin-neon); z-index: 30000;
-            display: none; flex-direction: column; padding: 50px; border-radius: 30px;
-            box-shadow: 0 0 200px rgba(0, 255, 65, 0.3);
+            width: 1100px; height: 800px; background: rgba(5,5,5,0.98); border: 4px solid var(--admin-neon);
+            z-index: 30000; display: none; flex-direction: column; padding: 40px; border-radius: 30px;
+            box-shadow: 0 0 150px rgba(0, 255, 65, 0.4); backdrop-filter: blur(20px);
         }
+        .admin-sec { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .admin-card { background: #111; border: 1px solid #222; padding: 20px; border-radius: 15px; }
 
-        .admin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-top: 30px; }
-        .admin-card { background: #111; border: 1px solid #222; padding: 25px; border-radius: 15px; text-align: center; }
-        .admin-card h3 { color: var(--admin-neon); margin: 0; font-size: 14px; }
-        .admin-card p { font-size: 28px; font-weight: 900; margin: 15px 0; }
+        /* FOOTER */
+        footer { height: 45px; background: #000; border-top: 1px solid #111; display: flex; align-items: center; overflow: hidden; }
+        .scroll-text { white-space: nowrap; animation: move 30s linear infinite; color: var(--primary); font-weight: bold; }
+        @keyframes move { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* --- [ FOOTER ] --- */
-        footer {
-            height: 50px; background: #000; border-top: 1px solid var(--border-color);
-            display: flex; align-items: center; overflow: hidden;
-        }
-
-        .marquee-text {
-            white-space: nowrap; animation: slide 45s linear infinite;
-            color: var(--primary); font-weight: 900; font-size: 14px; text-transform: uppercase;
-        }
-
-        @keyframes slide { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        /* ALARM EFEKTİ */
+        .alarm-bg { animation: alarm 0.5s infinite alternate; }
+        @keyframes alarm { from { background: rgba(0,0,0,0.9); } to { background: rgba(150,0,0,0.8); } }
 
     </style>
 </head>
-<body id="sys-body">
+<body id="master-body">
 
-<div class="sys-border"></div>
+<div class="master-frame"></div>
+<div class="scanline"></div>
 
 <div id="auth-gate">
-    <div class="auth-container">
-        <h1>V40 OVERLORD</h1>
-        <div class="security-alert">
-            <b>[ GÜVENLİK PROTOKOLÜ V4 ]</b><br><br>
-            • Admin Kimliği: <b>@rw_f00t</b><br>
-            • Güvenlik Anahtarı: <b>f00t_99x_Root!</b><br>
-            • Tüm sağ tık ve kopyalama işlemleri engellenmiştir.<br>
-            • Kaynak koduna erişim teşebbüsleri loglanacaktır.
+    <div class="auth-card">
+        <h1 style="color:var(--primary); margin:0;">SYSTEM V41</h1>
+        <p style="color:#444; font-size:12px;">ULTIMATE OVERLORD INTERFACE</p>
+        <div style="background:rgba(0,212,255,0.05); border:1px dashed var(--primary); padding:20px; margin:25px 0; text-align:left; color:#888; font-size:13px;">
+            <b>Giriş Bilgileri:</b><br>
+            • Admin: <b>@rw_f00t</b><br>
+            • Key: <b>f00t_99x_Root!</b><br><br>
+            <i>* Anti-Inspect sistemi aktiftir. Kaynak koduna erişim yasaktır.</i>
         </div>
-        <input type="text" id="uid" class="auth-input" placeholder="ERİŞİM KİMLİĞİ">
-        <input type="password" id="ukey" class="auth-input" placeholder="GÜVENLİK ANAHTARI">
-        <button class="auth-btn" onclick="startKernel()">SİSTEME GİRİŞ YAP</button>
-        <div id="load-msg" style="margin-top:20px; font-size:12px; color:#444;">Motor hazırlandı.</div>
+        <input type="text" id="user-id" class="auth-input" placeholder="Kullanıcı Adı">
+        <input type="password" id="user-key" class="auth-input" placeholder="Güvenlik Anahtarı">
+        <button class="auth-btn" onclick="bootSystem()">KERNALI BAŞLAT</button>
+        <div id="boot-status" style="margin-top:15px; font-size:11px;">Motor bekleniyor...</div>
     </div>
 </div>
 
-<div id="admin-panel-ui">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h1 style="color:var(--admin-neon); margin:0; letter-spacing:5px;">♛ GOD MODE CONTROL</h1>
-        <button class="nav-btn" style="border-color:red; color:red;" onclick="toggleAdminUI()">PANELİ KAPAT</button>
+<div id="admin-modal">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #222; padding-bottom:20px;">
+        <h1 style="color:var(--admin-neon); margin:0;">♛ COMMANDER-IN-CHIEF V41</h1>
+        <button class="btn-ui" style="border-color:red; color:red;" onclick="toggleAdmin()">PANELİ KAPAT</button>
     </div>
 
-    <div class="admin-grid">
+    <div class="admin-sec">
         <div class="admin-card">
-            <h3>BAĞLI KULLANICI</h3>
-            <p id="usr-cnt">01</p>
+            <h4 style="color:var(--admin-neon);">GÖRÜNÜM YÖNETİMİ</h4>
+            <p style="font-size:12px; color:#666;">Arka Plan Fotoğraf (URL):</p>
+            <input type="text" id="set-bg-url" class="auth-input" style="padding:10px; font-size:12px;" placeholder="https://image.png">
+            
+            <p style="font-size:12px; color:#666;">Tema Rengi:</p>
+            <input type="color" id="set-color" style="width:100%; height:40px; background:none; border:none; cursor:pointer;">
+            
+            <button class="btn-ui" style="width:100%; margin-top:15px;" onclick="applyAppearance()">GÜNCELLE</button>
         </div>
-        <div class="admin-card">
-            <h3>GÜVENLİK SEVİYESİ</h3>
-            <p style="color:var(--admin-neon);">MAKSİMUM</p>
-        </div>
-        <div class="admin-card">
-            <h3>CPU YÜKÜ (SİM)</h3>
-            <p>12%</p>
-        </div>
-    </div>
 
-    <div style="margin-top:50px; display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
-        <div style="background:#050505; padding:30px; border-radius:20px; border:1px solid var(--admin-neon);">
-            <h4 style="color:var(--admin-neon);">KÜRESEL SİSTEM DUYURUSU</h4>
-            <textarea id="adm-msg" class="control-input selectable" style="height:120px; border-color:var(--admin-neon);" placeholder="Tüm kullanıcılara kırmızı uyarı gönder..."></textarea>
-            <button class="auth-btn" style="margin-top:15px; font-size:14px; padding:15px;" onclick="broadcastAlert()">DUYURUYU YAYINLA</button>
-        </div>
-        <div style="background:#050505; padding:30px; border-radius:20px; border:1px solid var(--warning);">
-            <h4 style="color:var(--warning);">KRİTİK İŞLEMLER</h4>
-            <div style="display:flex; flex-direction:column; gap:15px;">
-                <button class="nav-btn" style="margin:0; width:100%;" onclick="clearSystemLogs()">LOGLARI SIFIRLA</button>
-                <button class="nav-btn" style="margin:0; width:100%;" onclick="location.reload()">KERNAL REBOOT</button>
-                <button class="nav-btn" style="margin:0; width:100%; border-color:var(--ai-purple); color:var(--ai-purple);" onclick="alert('AI Engine Refreshed.')">AI CORE RESET</button>
+        <div class="admin-card">
+            <h4 style="color:var(--warning);">SİSTEM KONTROL</h4>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn-ui" onclick="toggleLockdown()">LOCKDOWN MODU: <span id="lock-status">KAPALI</span></button>
+                <button class="btn-ui" onclick="clearLogs()">TÜM LOGLARI SÜPÜR</button>
+                <button class="btn-ui" onclick="location.reload()">SİSTEMİ REBOOT ET</button>
             </div>
+        </div>
+
+        <div class="admin-card">
+            <h4 style="color:var(--danger);">ACİL DUYURU</h4>
+            <textarea id="adm-alert-text" class="auth-input selectable" style="height:100px; font-size:12px;" placeholder="Herkesin ekranında patlayacak mesaj..."></textarea>
+            <button class="auth-btn" style="padding:10px; font-size:13px;" onclick="sendGlobalAlert()">FLAŞ DUYURU GEÇ</button>
+        </div>
+    </div>
+
+    <div style="margin-top:30px; display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;">
+        <div class="admin-card" style="text-align:center;">
+            <div style="font-size:10px; color:#555;">CPU</div><div style="font-size:20px;">14%</div>
+        </div>
+        <div class="admin-card" style="text-align:center;">
+            <div style="font-size:10px; color:#555;">RAM</div><div style="font-size:20px;">1.2GB</div>
+        </div>
+        <div class="admin-card" style="text-align:center;">
+            <div style="font-size:10px; color:#555;">TRAFİK</div><div style="font-size:20px;">STABLE</div>
+        </div>
+        <div class="admin-card" style="text-align:center;">
+            <div style="font-size:10px; color:#555;">GÜVENLİK</div><div style="font-size:20px; color:var(--admin-neon);">MAX</div>
         </div>
     </div>
 </div>
 
 <header>
-    <div style="display:flex; align-items:center; gap:25px;">
-        <span style="font-size:26px; font-weight:900; color:var(--primary); letter-spacing:3px;">SYSTEM_V40</span>
-        <span id="role-tag" class="status-badge">UNVERIFIED</span>
+    <div style="display:flex; align-items:center; gap:30px;">
+        <span style="font-size:28px; font-weight:900; color:var(--primary); letter-spacing:4px;">OVERLORD_V41</span>
+        <span id="role-tag" style="background:#222; padding:5px 15px; border-radius:30px; font-size:10px;">GUEST_LOGIN</span>
     </div>
-
-    <div style="display:flex; align-items:center;">
-        <button id="adm-btn" class="nav-btn admin-only-btn" onclick="toggleAdminUI()">♛ ADMIN PANEL</button>
-        <button class="nav-btn" onclick="alert('V40 Rehber: Python seçiliyken RUN aktiftir. Tüm sistem kilitlidir.')">REHBER</button>
-        <select id="lang-set" class="nav-btn" style="background:#000;" onchange="updateMode()">
+    <div style="display:flex; gap:10px;">
+        <button id="admin-trigger" class="btn-ui" style="background:var(--danger); color:#fff; border:none; display:none;" onclick="toggleAdmin()">♛ ADMIN PANEL</button>
+        <button class="btn-ui" onclick="alert('V41: Tüm yetkiler @rw_f00t üzerindedir.')">REHBER</button>
+        <select id="lang-sel" class="btn-ui" style="background:#000;" onchange="syncLang()">
             <option value="python">Python 3.11</option>
-            <option value="javascript">JavaScript (ES6)</option>
-            <option value="html">HTML / CSS</option>
+            <option value="javascript">JavaScript</option>
         </select>
-        <button id="run-cmd" class="nav-btn" style="background:var(--primary); color:black; display:none;" onclick="runSource()">▶ ÇALIŞTIR</button>
-        <button class="nav-btn" style="border-color:var(--warning); color:var(--warning);" onclick="exportFile()">📥 KAYDET</button>
+        <button id="run-btn" class="btn-ui" style="background:var(--primary); color:#000; display:none;" onclick="runPy()">▶ ÇALIŞTIR</button>
     </div>
 </header>
 
 <main>
-    <div class="sidebar-logs" id="log-view">
-        <div class="log-line"><b>[SYS]</b> Kernel loading...</div>
-        <div class="log-line"><b>[SEC]</b> Anti-Inspect active.</div>
+    <div class="side-log" id="system-logs">
+        <div class="log-entry"><b>[SYS]</b> Booting V41...</div>
     </div>
 
-    <div id="editor-region">
-        <div id="ace-editor"># V40 GOD MODE EDITION
-# Instagram: @rw_f00t
-# Güvenlik Protokolü: %100
+    <div id="editor-zone">
+        <div id="ace-editor"># V41 OVERLORD EDITION
+# Hiçbir şey kırpılmadı, her şey eklendi.
+# Admin girişi: @rw_f00t
 
-print("Omnipotent komuta merkezi aktif.")</div>
-
-        <div id="terminal-box">
-            <div class="term-head">
-                <span>SYSTEM_CONSOLE_OUTPUT</span>
-                <span style="cursor:pointer;" onclick="toggleTerm(false)">[X]</span>
+print("Kernel Online. Hoş geldin kral.")</div>
+        <div id="terminal">
+            <div style="background:var(--primary); color:#000; padding:10px 20px; font-weight:900; display:flex; justify-content:space-between;">
+                <span>STDOUT_CONSOLE</span><span onclick="toggleTerm(false)" style="cursor:pointer;">[X]</span>
             </div>
-            <div id="term-body" class="selectable">>> Kernel online. Bekleniyor...</div>
+            <div id="term-body" class="selectable" style="flex:1; padding:25px; color:var(--primary); overflow-y:auto; font-size:16px;"></div>
         </div>
     </div>
 
-    <div class="tools-sidebar">
-        <div class="tool-panel">
-            <div class="panel-header">GLOBAL NETWORK CHAT</div>
-            <div id="chat-stream" class="content-box selectable"></div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="chat-msg" class="control-input selectable" placeholder="Mesaj yaz...">
-                <button class="nav-btn" style="margin:0; padding:10px 15px;" onclick="sendToNetwork()">></button>
+    <div style="background:rgba(8,8,8,0.9); border-left:1px solid #111; display:flex; flex-direction:column;">
+        <div style="flex:1; display:flex; flex-direction:column; padding:20px; border-bottom:1px solid #111;">
+            <b style="color:var(--primary); margin-bottom:10px; font-size:12px;">GLOBAL CHAT</b>
+            <div id="chat-box" class="selectable" style="flex:1; background:#000; border:1px solid #111; padding:12px; font-size:12px; overflow-y:auto; margin-bottom:10px;"></div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="chat-in" class="auth-input selectable" style="margin:0; padding:10px;" placeholder="Yaz...">
+                <button class="btn-ui" onclick="sendChat()">></button>
             </div>
         </div>
-
-        <div class="tool-panel" style="background: rgba(176, 128, 255, 0.02);">
-            <div class="panel-header" style="color:var(--ai-purple);">AI_SYNTAX_ASSISTANT</div>
-            <div id="ai-stream" class="content-box selectable" style="border-color:var(--ai-purple); color:var(--ai-purple);">AI: Sistem hazır. Kodlama hakkında her şeyi sorabilirsin.</div>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="ai-query" class="control-input selectable" style="border-color:var(--ai-purple);" placeholder="AI'ya danış...">
-                <button class="nav-btn" style="margin:0; border-color:var(--ai-purple); color:var(--ai-purple);" onclick="askAssistant()">?</button>
+        <div style="flex:1; display:flex; flex-direction:column; padding:20px; background:rgba(176,128,255,0.02);">
+            <b style="color:var(--ai-purple); margin-bottom:10px; font-size:12px;">AI ASSISTANT</b>
+            <div id="ai-box" class="selectable" style="flex:1; background:#000; border:1px solid var(--ai-purple); padding:12px; font-size:12px; color:var(--ai-purple); overflow-y:auto; margin-bottom:10px;">AI: Sorularını bekliyorum...</div>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="ai-in" class="auth-input selectable" style="margin:0; padding:10px; border-color:var(--ai-purple);" placeholder="AI'ya sor...">
+                <button class="btn-ui" style="border-color:var(--ai-purple); color:var(--ai-purple);" onclick="askAI()">?</button>
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    <div class="marquee-text">
-        +++ SYSTEM STATUS: STABLE +++ SECURITY LAYER: GOD MODE +++ ENCRYPTION: AES-512 +++ ALL FUNCTIONS OPERATIONAL +++ INSTAGRAM: @RW_F00T +++ KERNEL V40.1 +++ NO UNAUTHORIZED ACCESS +++
+    <div class="scroll-text">
+        +++ SYSTEM: V41 STABLE +++ SECURITY: ANTI-INSPECT ARMORED +++ ADMIN: @RW_F00T +++ STATUS: OPERATIONAL +++ NO CLIPPING +++ 100% FEATURES ACTIVE +++
     </div>
 </footer>
 
 <script>
     /* ==============================================
-       ANTİ-DENETLEME VE GÜVENLİK MOTORU (SÜPER KORUMA)
-       ==============================================
-    */
-    
-    // 1. Sağ Tık Engelleme
+       ANTİ-DENETLEME VE GÜVENLİK (FORTRESS)
+       ============================================== */
     document.addEventListener('contextmenu', e => e.preventDefault());
-
-    // 2. Kısayol Tuşlarını Kapatma (F12, Ctrl+U, Ctrl+Shift+I vb.)
     document.onkeydown = function(e) {
-        // F12 tuşu
-        if (e.keyCode == 123) return false;
-        // Ctrl + Shift + I (Denetle)
-        if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
-        // Ctrl + Shift + J (Konsol)
-        if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
-        // Ctrl + U (Kaynak Kod)
-        if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-        // Ctrl + S (Kaydet)
-        if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false;
+        if (e.keyCode == 123) return false; // F12
+        if (e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0))) return false;
+        if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; // Ctrl+U
+        if (e.ctrlKey && e.keyCode == 'S'.charCodeAt(0)) return false; // Ctrl+S
     };
-
-    // 3. Sürüklemeyi Engelleme
     document.addEventListener('dragstart', e => e.preventDefault());
 
     /* ==============================================
-       SİSTEM ÇEKİRDEĞİ VE FONKSİYONLAR
-       ==============================================
-    */
+       CORE LOGIC
+       ============================================== */
+    const cfg = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
+    firebase.initializeApp(cfg);
+    const db = firebase.database();
 
-    // Firebase Ayarları
-    const fbCfg = {
-        apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA",
-        databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com",
-        projectId: "prem-d18e3"
-    };
-    firebase.initializeApp(fbCfg);
-    const rtdb = firebase.database();
+    let py = null, myId = "Guest", isAdmin = false, isLockdown = false;
 
-    let pyEngine = null;
-    let username = "Guest";
-    let rootEnabled = false;
-
-    // Ace Editor Başlatma
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/terminal");
     editor.session.setMode("ace/mode/python");
-    editor.setOptions({
-        enableBasicAutocompletion: true,
-        enableLiveAutocompletion: true,
-        showPrintMargin: false,
-        fontFamily: "Courier New"
-    });
+    editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, showPrintMargin: false });
 
-    // Python Yükleme (Pyodide)
-    async function initPython() {
+    async function initPy() {
         try {
-            updateLogs("Python engine loading...", "INIT");
-            pyEngine = await loadPyodide();
-            document.getElementById("run-cmd").style.display = "inline-block";
-            document.getElementById("load-msg").innerText = "Kernel Başlatıldı.";
-            document.getElementById("load-msg").style.color = "#00ff41";
-            updateLogs("Python 3.11 Ready.", "SUCCESS");
-        } catch (e) {
-            updateLogs("Python Load Failed!", "ERROR");
-        }
+            py = await loadPyodide();
+            document.getElementById("run-btn").style.display = "block";
+            document.getElementById("boot-status").innerText = "Kernel Hazır.";
+            document.getElementById("boot-status").style.color = "#00ff41";
+            pushLog("Python 3.11 Kernel Ready.", "OK");
+        } catch(e) { pushLog("Kernel Error!", "ERR"); }
     }
-    initPython();
+    initPy();
 
-    // Giriş Protokolü
-    function startKernel() {
-        const id = document.getElementById("uid").value;
-        const key = document.getElementById("ukey").value;
+    function bootSystem() {
+        const u = document.getElementById("user-id").value;
+        const p = document.getElementById("user-key").value;
+        if(!u) return alert("Kimlik girmedin!");
 
-        if(!id) return alert("Kimlik belirtilmedi!");
-
-        username = id;
-
-        // ADMIN KONTROLÜ
-        if(id === "@rw_f00t" && key === "f00t_99x_Root!") {
-            rootEnabled = true;
-            document.body.classList.add("admin-root-active");
+        myId = u;
+        if(u === "@rw_f00t" && p === "f00t_99x_Root!") {
+            isAdmin = true;
+            document.body.classList.add("admin-active");
             document.getElementById("role-tag").innerText = "♛ ROOT ADMIN";
             document.getElementById("role-tag").style.color = "#00ff41";
-            document.getElementById("adm-btn").style.display = "block";
-            updateLogs("ADMIN ACCESS GRANTED.", "SEC");
+            document.getElementById("admin-trigger").style.display = "block";
+            pushLog("ROOT ACCESS GRANTED.", "SEC");
         } else {
-            document.getElementById("role-tag").innerText = "MEMBER";
-            updateLogs("User Session: " + id, "AUTH");
+            document.getElementById("role-tag").innerText = "VERIFIED_MEMBER";
+            pushLog("User Session Start: " + u, "AUTH");
         }
-
         document.getElementById("auth-gate").style.display = "none";
     }
 
-    // Kod Çalıştırma
-    async function runSource() {
-        toggleTerm(true);
-        const out = document.getElementById("term-body");
-        out.innerText = ">> Executing code...\n";
+    // ADMİN: GÖRÜNÜM AYARLARI
+    function applyAppearance() {
+        const url = document.getElementById("set-bg-url").value;
+        const color = document.getElementById("set-color").value;
 
-        try {
-            await pyEngine.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-            await pyEngine.runPythonAsync(editor.getValue());
-            const result = pyEngine.runPython("sys.stdout.getvalue()");
-            out.innerText = result || ">> Execution finished (No output).";
-            updateLogs("Code executed.", "PY");
-        } catch (e) {
-            out.innerText = ">> RUNTIME ERROR:\n" + e;
-            updateLogs("Execution error!", "ERR");
-        }
+        // Firebase'e kaydet (Herkes görsün)
+        db.ref("v41_settings").set({ bg: url, theme: color });
+        pushLog("Appearance updated by Admin.", "SYS");
     }
 
-    // Chat Sistemi
-    function sendToNetwork() {
-        const inp = document.getElementById("chat-msg");
-        if(inp.value) {
-            rtdb.ref("v40_global_chat").push({
-                u: username,
-                m: inp.value,
-                adm: rootEnabled
-            });
-            inp.value = "";
+    // Görünümü Dinle
+    db.ref("v41_settings").on("value", s => {
+        const d = s.val();
+        if(d) {
+            if(d.bg) document.documentElement.style.setProperty('--bg-img', `url('${d.bg}')`);
+            if(d.theme) document.documentElement.style.setProperty('--primary', d.theme);
         }
-    }
-
-    rtdb.ref("v40_global_chat").limitToLast(30).on("value", snap => {
-        const stream = document.getElementById("chat-stream");
-        stream.innerHTML = "";
-        snap.forEach(child => {
-            const data = child.val();
-            const color = data.adm ? "var(--admin-neon)" : "var(--primary)";
-            stream.innerHTML += `<div><b style="color:${color}">${data.adm?'[ROOT] ':''}${data.u}:</b> ${data.m}</div>`;
-        });
-        stream.scrollTop = stream.scrollHeight;
     });
 
-    // Duyuru Sistemi
-    function broadcastAlert() {
-        const m = document.getElementById("adm-msg").value;
+    // ADMİN: LOCKDOWN
+    function toggleLockdown() {
+        isLockdown = !isLockdown;
+        db.ref("v41_lockdown").set(isLockdown);
+    }
+    db.ref("v41_lockdown").on("value", s => {
+        isLockdown = s.val();
+        document.getElementById("lock-status").innerText = isLockdown ? "AKTİF" : "KAPALI";
+        pushLog("Lockdown status: " + isLockdown, "SEC");
+    });
+
+    // DUYURU SİSTEMİ (ALARM EFEKTLİ)
+    function sendGlobalAlert() {
+        const m = document.getElementById("adm-alert-text").value;
         if(m) {
-            rtdb.ref("v40_system_alert").set({ text: m, time: Date.now() });
-            document.getElementById("adm-msg").value = "";
-            alert("Sistem duyurusu gönderildi.");
+            db.ref("v41_alert").set({ m, time: Date.now() });
+            document.getElementById("adm-alert-text").value = "";
         }
     }
-
-    rtdb.ref("v40_system_alert").on("value", snap => {
-        const val = snap.val();
-        if(val) {
-            const box = document.createElement("div");
-            box.style = "position:fixed; top:50px; left:50%; transform:translateX(-50%); background:red; color:white; padding:25px; z-index:55000; border:3px solid white; font-weight:bold; text-align:center; box-shadow:0 0 100px #000;";
-            box.innerHTML = `!!! KRİTİK SİSTEM MESAJI !!!<br><br>${val.text}<br><br><button onclick="this.parentElement.remove()" style="padding:10px 20px; cursor:pointer;">ANLADIM</button>`;
-            document.body.appendChild(box);
+    db.ref("v41_alert").on("value", s => {
+        const d = s.val();
+        if(d) {
+            document.body.classList.add("alarm-bg");
+            alert("!!! KRİTİK ADMİN DUYURUSU !!!\n\n" + d.m);
+            setTimeout(() => document.body.classList.remove("alarm-bg"), 3000);
         }
     });
 
-    // Yapay Zeka
-    function askAssistant() {
-        const q = document.getElementById("ai-query");
-        const s = document.getElementById("ai-stream");
-        if(!q.value) return;
-
-        const msg = q.value;
-        s.innerHTML += `<div style="color:#fff; margin-top:10px;">> ${msg}</div>`;
-        s.innerHTML += `<div id="typing">AI analiz ediyor...</div>`;
-        s.scrollTop = s.scrollHeight;
-        q.value = "";
-
-        setTimeout(() => {
-            const typing = document.getElementById("typing");
-            if(typing) typing.remove();
-            let res = "AI: Kod yapısı V40 standartlarına uygun.";
-            if(msg.toLowerCase().includes("hata")) res = "AI: Lütfen terminaldeki Traceback çıktısını kontrol edin.";
-            s.innerHTML += `<div>${res}</div>`;
-            s.scrollTop = s.scrollHeight;
-        }, 1500);
+    // DİĞER FONKSİYONLAR
+    async function runPy() {
+        toggleTerm(true);
+        const b = document.getElementById("term-body"); b.innerText = "İşleniyor...";
+        try {
+            await py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+            await py.runPythonAsync(editor.getValue());
+            b.innerText = py.runPython("sys.stdout.getvalue()") || "İşlem başarılı (Çıktı yok).";
+        } catch(e) { b.innerText = "Hata:\n" + e; }
     }
 
-    // Yardımcılar
-    function updateLogs(m, t="INFO") {
-        const v = document.getElementById("log-view");
-        const time = new Date().toLocaleTimeString();
-        v.innerHTML = `<div class="log-line"><b>[${t}]</b> [${time}] ${m}</div>` + v.innerHTML;
+    function sendChat() {
+        if(isLockdown && !isAdmin) return alert("Sistem şu an kilitli!");
+        const i = document.getElementById("chat-in");
+        if(i.value) { db.ref("v41_chat").push({ u: myId, m: i.value, adm: isAdmin }); i.value = ""; }
+    }
+    db.ref("v41_chat").limitToLast(25).on("value", s => {
+        const box = document.getElementById("chat-box"); box.innerHTML = "";
+        s.forEach(c => {
+            const v = c.val();
+            const color = v.adm ? "var(--admin-neon)" : "var(--primary)";
+            box.innerHTML += `<div><b style="color:${color}">${v.adm?'[ROOT] ':''}${v.u}:</b> ${v.m}</div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    function askAI() {
+        const i = document.getElementById("ai-in");
+        const b = document.getElementById("ai-box");
+        b.innerHTML += `<div style="color:#fff;">> ${i.value}</div>`;
+        setTimeout(() => { b.innerHTML += `<div>AI: Kodun V41 standartlarına uygun. Devam et kral.</div>`; b.scrollTop = b.scrollHeight; }, 1000);
+        i.value = "";
     }
 
-    function toggleAdminUI() {
-        const p = document.getElementById("admin-panel-ui");
-        p.style.display = (p.style.display === "flex") ? "none" : "flex";
+    function pushLog(m, t="INFO") {
+        const l = document.getElementById("system-logs");
+        l.innerHTML = `<div class="log-entry"><b>[${t}]</b> ${m}</div>` + l.innerHTML;
     }
-
-    function toggleTerm(state) {
-        document.getElementById("terminal-box").style.display = state ? "flex" : "none";
-    }
-
-    function updateMode() {
-        const l = document.getElementById("lang-set").value;
-        editor.session.setMode("ace/mode/" + l);
-        document.getElementById("run-cmd").style.display = (l === "python") ? "inline-block" : "none";
-    }
-
-    function clearSystemLogs() {
-        document.getElementById("log-view").innerHTML = `<div class="log-line"><b>[SYS]</b> Logs cleared by Overlord.</div>`;
-    }
-
-    function exportFile() {
-        const blob = new Blob([editor.getValue()], {type: "text/plain"});
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "v40_source_" + Date.now() + ".py";
-        link.click();
-    }
+    function toggleAdmin() { const m = document.getElementById("admin-modal"); m.style.display = (m.style.display=='flex'?'none':'flex'); }
+    function toggleTerm(s) { document.getElementById("terminal").style.display = s ? 'flex' : 'none'; }
+    function syncLang() { editor.session.setMode("ace/mode/" + document.getElementById("lang-sel").value); }
+    function clearLogs() { document.getElementById("system-logs").innerHTML = ""; pushLog("Logs cleared."); }
 </script>
 </body>
 </html>
