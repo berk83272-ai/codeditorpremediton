@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SUPREME V47 OMNIPOTENCE | THE FINAL ARCHITECT</title>
+    <title>OMNIPOTENCE V48 | ENTERPRISE KERNEL</title>
     
     <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.0/ace.js"></script>
@@ -14,13 +14,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
 
     <style>
-        /* ==========================================================================================
-           CSS ENGINE - V47 NEON OVERRIDE
-           ========================================================================================== */
         :root {
-            --primary: #00d4ff; --primary-glow: rgba(0, 212, 255, 0.4);
-            --admin-neon: #00ff41; --admin-glow: rgba(0, 255, 65, 0.4);
-            --ghost: #d800ff; --danger: #ff003c; --warning: #ffcc00; --ai: #b080ff;
+            --primary: #00d4ff; --admin-neon: #00ff41; --danger: #ff003c;
+            --ghost: #d800ff; --warning: #ffcc00; --ai: #b080ff;
             --bg: #020202; --panel: #0a0a0c; --border: #1f1f23;
             --text: #e0e0e0; --font-main: 'Fira Code', monospace;
         }
@@ -28,128 +24,111 @@
         * { box-sizing: border-box; outline: none; margin: 0; padding: 0; cursor: crosshair; }
         body { height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-main); overflow: hidden; display: flex; flex-direction: column; }
 
-        /* MATRIX SCANLINE EFFECT */
-        body::after {
-            content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 999999; opacity: 0.15;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px, 3px 100%;
-            animation: flicker 0.15s infinite;
+        /* GLOBAL GLITCH EFFECT ANIMATION */
+        @keyframes screen-glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); filter: hue-rotate(90deg); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, 0); filter: invert(1); }
+            100% { transform: translate(0); }
         }
+        .glitch-active { animation: screen-glitch 0.2s infinite; }
 
-        @keyframes flicker { 0% { opacity: 0.15; } 50% { opacity: 0.18; } 100% { opacity: 0.15; } }
-
-        header { height: 70px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; box-shadow: 0 4px 30px rgba(0,0,0,1); }
+        header { height: 70px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; z-index: 1000; }
         .logo { font-family: 'Orbitron'; font-weight: 900; font-size: 22px; letter-spacing: 4px; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); }
 
-        .btn { background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; font-size: 11px; cursor: pointer; transition: 0.4s; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .btn:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); transform: translateY(-2px); }
+        .btn { background: rgba(255,255,255,0.02); color: var(--text); border: 1px solid var(--border); padding: 10px 18px; font-size: 11px; cursor: pointer; transition: 0.3s; border-radius: 4px; text-transform: uppercase; }
+        .btn:hover { border-color: var(--primary); color: var(--primary); box-shadow: 0 0 15px var(--primary-glow); }
         .btn-run { background: var(--primary); color: #000; font-weight: 900; border: none; }
 
-        /* LAYOUT ARCHITECTURE */
         main { display: grid; grid-template-columns: 280px 1fr 380px; flex: 1; overflow: hidden; }
-        
+
+        /* SIDEBARS */
         .explorer { background: var(--panel); border-right: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; gap: 5px; }
-        .explorer-header { font-size: 10px; color: #444; margin-bottom: 20px; letter-spacing: 3px; font-weight: 900; display: flex; justify-content: space-between; }
-        
-        .file-item { padding: 12px; font-size: 13px; color: #777; cursor: pointer; display: flex; align-items: center; gap: 12px; border-radius: 4px; transition: 0.2s; }
+        .file-item { padding: 10px; font-size: 13px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 10px; border-radius: 4px; }
         .file-item:hover { background: rgba(255,255,255,0.03); color: var(--primary); }
-        .file-item.active { background: rgba(0, 212, 255, 0.1); color: var(--primary); border-left: 3px solid var(--primary); font-weight: 700; }
+        .file-item.active { background: rgba(0, 212, 255, 0.1); color: var(--primary); border-left: 3px solid var(--primary); }
 
         #editor-wrapper { position: relative; flex: 1; background: #000; }
         #ace-editor { position: absolute; inset: 0; font-size: 15px !important; }
 
-        #terminal-drawer { position: absolute; bottom: 0; width: 100%; height: 35%; background: rgba(2, 2, 4, 0.98); border-top: 1px solid var(--primary); z-index: 2000; display: none; flex-direction: column; backdrop-filter: blur(15px); }
-        .term-head { background: #000; padding: 10px 25px; font-size: 11px; display: flex; justify-content: space-between; color: var(--primary); border-bottom: 1px solid #111; }
-        #term-body { flex: 1; padding: 20px; font-size: 13px; overflow-y: auto; color: var(--primary); line-height: 1.6; }
+        /* TERMINAL */
+        #terminal-drawer { position: absolute; bottom: 0; width: 100%; height: 35%; background: rgba(0,0,0,0.95); border-top: 1px solid var(--primary); z-index: 2000; display: none; flex-direction: column; }
+        .term-head { background: #000; padding: 10px 20px; font-size: 11px; display: flex; justify-content: space-between; color: var(--primary); }
+        #term-body { flex: 1; padding: 15px; font-size: 13px; overflow-y: auto; color: #00ff41; font-family: 'Courier New'; }
 
+        /* COMMS & AI */
         .intelligence { background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; }
-        .panel-header { padding: 15px 20px; background: rgba(0,0,0,0.5); font-size: 11px; font-weight: 900; color: var(--ai); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 2px; }
-        .chat-stream { flex: 1; overflow-y: auto; padding: 20px; font-size: 12px; scroll-behavior: smooth; }
-        .chat-input-area { padding: 20px; border-top: 1px solid var(--border); background: rgba(0,0,0,0.2); }
-        .flat-input { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 12px; font-size: 12px; font-family: var(--font-main); border-radius: 2px; }
+        .panel-header { padding: 15px; background: rgba(0,0,0,0.4); font-size: 11px; font-weight: 900; color: var(--ai); border-bottom: 1px solid var(--border); letter-spacing: 2px; }
+        .chat-stream { flex: 1; overflow-y: auto; padding: 15px; font-size: 12px; line-height: 1.5; }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--border); }
+        .flat-input { width: 100%; background: #000; border: 1px solid var(--border); color: #fff; padding: 10px; font-family: var(--font-main); font-size: 12px; }
 
         /* ==========================================================================================
-           ADMIN OVERLORD PANEL - THE 300+ LINE ENGINE
+           OVERLORD FULL-SCREEN MODAL
            ========================================================================================== */
-        #overlord-panel { position: fixed; inset: 0; background: rgba(0,0,0,0.99); z-index: 20000; display: none; flex-direction: row; }
-        .ov-sidebar { width: 300px; border-right: 1px solid var(--admin-neon); padding: 40px 30px; background: #050505; display: flex; flex-direction: column; }
-        .ov-main { flex: 1; padding: 50px; overflow-y: auto; background: radial-gradient(circle at 50% 50%, #0a0a0a 0%, #000 100%); position: relative; }
+        #overlord-panel { position: fixed; inset: 0; background: #000; z-index: 30000; display: none; grid-template-columns: 300px 1fr; }
+        .ov-sidebar { border-right: 1px solid var(--admin-neon); padding: 40px 20px; background: #050505; }
+        .ov-main { padding: 60px; overflow-y: auto; }
+        .ov-tab { padding: 15px; color: #444; font-size: 12px; cursor: pointer; border-radius: 4px; margin-bottom: 5px; font-weight: 900; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
+        .ov-tab.active { background: rgba(0, 255, 65, 0.1); color: var(--admin-neon); }
+        .ov-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .ov-card { background: #0a0a0c; border: 1px solid #1a1a1a; padding: 25px; border-radius: 8px; transition: 0.3s; position: relative; }
+        .ov-card:hover { border-color: var(--admin-neon); transform: translateY(-5px); }
+        .ov-card i { font-size: 24px; color: var(--admin-neon); margin-bottom: 15px; display: block; }
+        .ov-card h3 { font-size: 14px; margin-bottom: 10px; }
+        .ov-card p { font-size: 11px; color: #555; }
+
+        footer { height: 35px; background: #000; border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; font-size: 10px; color: #444; justify-content: space-between; }
         
-        .ov-nav-group { margin-bottom: 35px; }
-        .ov-label { font-size: 10px; color: #444; letter-spacing: 2px; margin-bottom: 15px; display: block; font-weight: 900; }
-        .ov-tab { padding: 16px; color: #444; cursor: pointer; transition: 0.3s; margin-bottom: 8px; border-radius: 4px; font-size: 12px; font-weight: 900; border: 1px solid transparent; display: flex; align-items: center; gap: 15px; }
-        .ov-tab:hover { color: #888; background: rgba(255,255,255,0.02); }
-        .ov-tab.active { background: rgba(0, 255, 65, 0.05); color: var(--admin-neon); border-color: rgba(0, 255, 65, 0.2); box-shadow: 0 0 20px rgba(0, 255, 65, 0.05); }
-
-        .ov-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px; }
-        .ov-card { background: rgba(255,255,255,0.01); border: 1px solid #111; padding: 25px; border-radius: 8px; position: relative; overflow: hidden; }
-        .ov-card::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--admin-neon); }
-        .ov-stat { font-size: 32px; font-family: 'Orbitron'; color: var(--admin-neon); margin-top: 10px; display: block; }
-        
-        /* REALTIME LOG VIEW */
-        .ov-log-window { background: #020202; border: 1px solid #111; height: 400px; padding: 20px; font-family: monospace; color: var(--admin-neon); overflow-y: auto; font-size: 13px; line-height: 1.8; white-space: pre-wrap; position: relative; }
-        .ov-log-window::before { content: "LIVE_CORE_FEED"; position: absolute; top: 10px; right: 20px; font-size: 9px; opacity: 0.4; }
-
-        /* THEME TUNER */
-        .theme-swatch { height: 100px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; transition: 0.3s; }
-        .theme-swatch:hover { transform: scale(1.02); box-shadow: 0 0 30px rgba(255,255,255,0.1); }
-
-        /* DATA NODES TABLE */
-        .ov-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .ov-table th { text-align: left; padding: 15px; color: #444; font-size: 10px; text-transform: uppercase; border-bottom: 1px solid #111; }
-        .ov-table td { padding: 15px; color: #aaa; font-size: 12px; border-bottom: 1px solid #080808; }
-
-        footer { height: 35px; background: #000; border-top: 1px solid var(--border); display: flex; align-items: center; padding: 0 25px; font-size: 10px; color: #555; justify-content: space-between; }
+        #gate { position: fixed; inset: 0; background: #000; z-index: 1000000; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
-<body>
+<body id="master-body">
 
-<div id="gate" style="position:fixed; inset:0; background:#000; z-index:999999; display:flex; align-items:center; justify-content:center;">
-    <div style="width:450px; text-align:center;">
-        <h1 class="logo" style="font-size:50px; margin-bottom:50px;">OMNI V47</h1>
-        <div style="background:var(--panel); padding:40px; border:1px solid var(--border); box-shadow: 0 0 100px rgba(0,0,0,1);">
-            <div style="color:var(--primary); font-size:10px; margin-bottom:20px; text-transform:uppercase; letter-spacing:5px;">System Authorization Required</div>
-            <input type="text" id="uid" class="flat-input" style="margin-bottom:15px; text-align:center;" placeholder="IDENTITY_ID">
-            <input type="password" id="ukey" class="flat-input" style="margin-bottom:25px; text-align:center;" placeholder="SECURITY_KEY">
-            <button class="btn btn-run" style="width:100%; padding:18px;" onclick="SystemKernel.boot()">INITIALIZE KERNEL</button>
+<div id="gate">
+    <div style="width:400px; text-align:center;">
+        <h1 class="logo" style="font-size:45px; margin-bottom:40px;">OMNI V48</h1>
+        <div style="background:var(--panel); padding:30px; border:1px solid var(--border);">
+            <input type="text" id="uid" class="flat-input" style="margin-bottom:10px;" placeholder="IDENTITY_ID">
+            <input type="password" id="ukey" class="flat-input" style="margin-bottom:20px;" placeholder="SECURITY_KEY">
+            <button class="btn btn-run" style="width:100%; padding:15px;" onclick="SystemKernel.boot()">ACCESS_CORE</button>
         </div>
     </div>
 </div>
 
 <header>
-    <div style="display:flex; gap:25px; align-items:center;">
+    <div style="display:flex; gap:20px; align-items:center;">
         <div class="logo">OMNIPOTENCE</div>
         <button class="btn" onclick="UI.toggleModal('guide')">REHBER</button>
         <button class="btn" id="adm-btn" style="display:none; color:var(--admin-neon); border-color:var(--admin-neon);" onclick="UI.toggleOverlord(true)">OVERLORD_CORE</button>
     </div>
-    <div style="display:flex; gap:12px;">
-        <select id="lang-select" class="btn" style="background:transparent;" onchange="SystemKernel.syncEnvironment()">
-            <option value="python">PYTHON_3.11</option>
-            <option value="javascript">JS_ES2024</option>
-            <option value="html">HTML5_ENGINE</option>
-            <option value="sql">SQL_QUERY</option>
-            <option value="c_cpp">C++_GCC</option>
+    <div style="display:flex; gap:10px;">
+        <select id="lang-select" class="btn" style="background:transparent;" onchange="SystemKernel.syncLang()">
+            <option value="python">PYTHON 3.11</option>
+            <option value="javascript">JAVASCRIPT</option>
+            <option value="sql">SQL_ENGINE</option>
+            <option value="html">HTML_RENDER</option>
         </select>
-        <button class="btn-run btn" onclick="SystemKernel.executePipeline()">RUN_PROCESS</button>
+        <button class="btn btn-run" onclick="SystemKernel.execute()">RUN_PIPELINE</button>
     </div>
 </header>
 
 <main>
     <aside class="explorer">
-        <div class="explorer-header"><span>PROJECT_FILES</span> <i class="fas fa-plus"></i></div>
-        <div class="file-item active" onclick="SystemKernel.loadFile('main.py', this)"><i class="fab fa-python" style="color:#ffd43b"></i> main.py</div>
+        <div style="font-size:10px; color:#333; margin-bottom:15px; letter-spacing:2px;">VIRTUAL_FS</div>
+        <div class="file-item active" onclick="SystemKernel.loadFile('main.py', this)"><i class="fab fa-python"></i> main.py</div>
+        <div class="file-item" onclick="SystemKernel.loadFile('database.sql', this)"><i class="fas fa-database"></i> database.sql</div>
         <div class="file-item" onclick="SystemKernel.loadFile('config.json', this)"><i class="fas fa-cog"></i> config.json</div>
-        <div class="file-item" onclick="SystemKernel.loadFile('schema.sql', this)"><i class="fas fa-database" style="color:var(--primary)"></i> schema.sql</div>
-        <div class="file-item" onclick="SystemKernel.loadFile('firewall.log', this)"><i class="fas fa-shield-alt" style="color:var(--danger)"></i> firewall.log</div>
-        <div class="file-item" onclick="SystemKernel.loadFile('kernel.asm', this)"><i class="fas fa-microchip"></i> kernel.asm</div>
+        <div class="file-item" onclick="SystemKernel.loadFile('security.log', this)"><i class="fas fa-shield-alt"></i> security.log</div>
     </aside>
 
     <section id="editor-wrapper">
         <div id="ace-editor"></div>
         <div id="terminal-drawer">
             <div class="term-head">
-                <span><i class="fas fa-terminal"></i> KERNEL_OUTPUT_STREAM</span>
-                <span onclick="UI.toggleTerminal(false)" style="cursor:pointer">TERMINATE_VIEW [X]</span>
+                <span>TERMINAL_OUTPUT</span>
+                <span onclick="UI.toggleTerminal(false)" style="cursor:pointer">CLOSE [X]</span>
             </div>
             <div id="term-body"></div>
         </div>
@@ -157,160 +136,98 @@
 
     <aside class="intelligence">
         <div class="panel-header">Ghost AI Analyst</div>
-        <div class="chat-stream" id="ai-logs">
-            <div style="color:#444;">[SYSTEM] AI Neutralized. Waiting for input...</div>
-        </div>
-        <div class="chat-input-area"><input type="text" id="ai-input" class="flat-input" placeholder="Query Ghost AI..."></div>
+        <div class="chat-stream" id="ai-logs"><div style="color:#333;">Awaiting data packet...</div></div>
+        <div class="chat-input-area"><input type="text" id="ai-input" class="flat-input" placeholder="Query AI..."></div>
         
-        <div class="panel-header" style="border-top:1px solid var(--border); color:var(--primary)">Secure Comms</div>
+        <div class="panel-header" style="border-top:1px solid var(--border); color:var(--primary)">Global Secure Comms</div>
         <div class="chat-stream" id="global-chat"></div>
-        <div class="chat-input-area"><input type="text" id="chat-input" class="flat-input" placeholder="Broadcast message..."></div>
+        <div class="chat-input-area"><input type="text" id="chat-input" class="flat-input" placeholder="Broadcast..."></div>
     </aside>
 </main>
 
 <div id="overlord-panel">
     <div class="ov-sidebar">
-        <h2 style="color:var(--admin-neon); font-family:'Orbitron'; font-size:18px; margin-bottom:45px; letter-spacing:3px;">OVERLORD_CORE</h2>
-        
-        <nav class="ov-nav-group">
-            <span class="ov-label">MONITORING_SYSTEM</span>
-            <div class="ov-tab active" onclick="UI.switchAdminTab('dash', this)"><i class="fas fa-tachometer-alt"></i> DASHBOARD</div>
-            <div class="ov-tab" onclick="UI.switchAdminTab('spy', this)"><i class="fas fa-user-secret"></i> SPY_STREAM</div>
-            <div class="ov-tab" onclick="UI.switchAdminTab('nodes', this)"><i class="fas fa-network-wired"></i> NODE_NODES</div>
-        </nav>
-
-        <nav class="ov-nav-group">
-            <span class="ov-label">SYSTEM_CONTROL</span>
-            <div class="ov-tab" onclick="UI.switchAdminTab('theme', this)"><i class="fas fa-palette"></i> VISUAL_FREQ</div>
-            <div class="ov-tab" onclick="UI.switchAdminTab('wipe', this)"><i class="fas fa-skull-crossbones"></i> DATA_PURGE</div>
-        </nav>
-
-        <div style="margin-top:auto;">
-            <div style="font-size:10px; color:#222; margin-bottom:15px; font-family:monospace;">SESSION_TOKEN: 0x88AFB211</div>
-            <button class="btn" style="width:100%; border-color:var(--danger); color:var(--danger);" onclick="UI.toggleOverlord(false)">DISCONNECT_ROOT</button>
-        </div>
+        <h2 style="color:var(--admin-neon); font-family:'Orbitron'; margin-bottom:40px;">OVERLORD_V48</h2>
+        <div class="ov-tab active" onclick="UI.switchTab('monitor', this)"><i class="fas fa-desktop"></i> LIVE_MONITOR</div>
+        <div class="ov-tab" onclick="UI.switchTab('intervene', this)"><i class="fas fa-bolt"></i> INTERVENTION</div>
+        <div class="ov-tab" onclick="UI.switchTab('spy', this)"><i class="fas fa-user-secret"></i> SPY_PACKETS</div>
+        <div class="ov-tab" onclick="UI.switchTab('visuals', this)"><i class="fas fa-eye"></i> VISUAL_HACK</div>
+        <button class="btn" style="margin-top:auto; width:100%; border-color:var(--danger); color:var(--danger);" onclick="UI.toggleOverlord(false)">EXIT_ROOT</button>
     </div>
 
     <div class="ov-main">
-        <div id="ov-dash" class="ov-sec">
-            <h1 style="color:var(--admin-neon); font-size:32px; margin-bottom:40px; font-family:'Orbitron';">Global Metrics</h1>
+        <div id="ov-monitor" class="ov-sec">
+            <h1 style="margin-bottom:30px; color:var(--admin-neon);">Kernel Performance Metrics</h1>
             <div class="ov-card-grid">
-                <div class="ov-card"><span>CORE_CPU_FREQ</span><span class="ov-stat" id="cpu-stat">4.82 GHz</span></div>
-                <div class="ov-card"><span>MEMORY_UTIL</span><span class="ov-stat">12.4 / 64 GB</span></div>
-                <div class="ov-card"><span>LIVE_NODES</span><span class="ov-stat">1,024</span></div>
+                <div class="ov-card"><i class="fas fa-microchip"></i><h3>CPU_LOAD</h3><p id="cpu-val">0.00%</p></div>
+                <div class="ov-card"><i class="fas fa-memory"></i><h3>MEM_HEARTBEAT</h3><p>Active (Stable)</p></div>
+                <div class="ov-card"><i class="fas fa-network-wired"></i><h3>NODE_COUNT</h3><p>1,248 Nodes</p></div>
             </div>
-            <h3 style="color:#333; margin-bottom:15px; font-size:11px;">TRAFFIC_REALTIME_ANALYSIS</h3>
-            <div style="height:200px; border:1px solid #111; display:flex; align-items:flex-end; gap:6px; padding:20px;">
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:40%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:80%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:60%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:90%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:30%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:100%;"></div>
-                <div class="v-bar" style="flex:1; background:var(--admin-neon); height:50%;"></div>
+        </div>
+
+        <div id="ov-intervene" class="ov-sec" style="display:none;">
+            <h1 style="margin-bottom:30px; color:var(--danger);">Intervention Authority</h1>
+            <div class="ov-card-grid">
+                <div class="ov-card" onclick="Overlord.ghostMessage()">
+                    <i class="fas fa-mask"></i><h3>GHOST_MSG</h3><p>Başkasının ismiyle mesaj at.</p>
+                </div>
+                <div class="ov-card" onclick="Overlord.systemAlert()">
+                    <i class="fas fa-exclamation-circle"></i><h3>SYS_BROADCAST</h3><p>Tüm ekranlara uyarı bas.</p>
+                </div>
+                <div class="ov-card" onclick="Overlord.triggerGlitch()">
+                    <i class="fas fa-radiation"></i><h3>GLITCH_SYNC</h3><p>Tüm terminalleri titreti.</p>
+                </div>
+                <div class="ov-card" onclick="Overlord.purgeDB()">
+                    <i class="fas fa-trash-alt"></i><h3>PURGE_LOGS</h3><p>Tüm geçmişi temizle.</p>
+                </div>
             </div>
         </div>
 
         <div id="ov-spy" class="ov-sec" style="display:none;">
-            <h1 style="color:var(--admin-neon); margin-bottom:25px;">Intercepted Packet Stream</h1>
-            <div class="ov-log-window" id="spy-logs"></div>
-            <div style="margin-top:20px; display:flex; gap:20px;">
-                <button class="btn" onclick="document.getElementById('spy-logs').innerHTML=''">CLEAR_LOGS</button>
-                <button class="btn" style="border-color:var(--admin-neon); color:var(--admin-neon)">PAUSE_INTERCEPT</button>
-            </div>
-        </div>
-
-        <div id="ov-nodes" class="ov-sec" style="display:none;">
-            <h1 style="color:var(--primary); margin-bottom:30px;">Distributed Node Cluster</h1>
-            <table class="ov-table">
-                <thead><tr><th>NODE_ID</th><th>LOCATION</th><th>IP_ADDR</th><th>STATUS</th><th>LATENCY</th></tr></thead>
-                <tbody>
-                    <tr><td>ALPHA_NODE_01</td><td>EU_WEST</td><td>185.22.x.x</td><td style="color:var(--admin-neon)">ONLINE</td><td>14ms</td></tr>
-                    <tr><td>BETA_NODE_09</td><td>US_EAST</td><td>104.18.x.x</td><td style="color:var(--admin-neon)">ONLINE</td><td>88ms</td></tr>
-                    <tr><td>OMEGA_NODE_ZZ</td><td>ASIA_HK</td><td>45.112.x.x</td><td style="color:var(--danger)">OFFLINE</td><td>---</td></tr>
-                    <tr><td>GHOST_NODE_V4</td><td>UNKNOWN</td><td>?.?.?.?</td><td style="color:var(--ghost)">ENCRYPTED</td><td>1ms</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="ov-theme" class="ov-sec" style="display:none;">
-            <h1 style="color:var(--primary); margin-bottom:10px;">Visual Frequency Control</h1>
-            <p style="color:#444; margin-bottom:40px;">Senkronize neon dalga boylarını sistem genelinde değiştirin.</p>
-            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:20px;">
-                <div class="theme-swatch" style="background:#00d4ff; color:#000;" onclick="UI.applyGlobalTheme('#00d4ff')">CYBER_BLUE</div>
-                <div class="theme-swatch" style="background:#00ff41; color:#000;" onclick="UI.applyGlobalTheme('#00ff41')">MATRIX_GREEN</div>
-                <div class="theme-swatch" style="background:#ff003c; color:#000;" onclick="UI.applyGlobalTheme('#ff003c')">DANGER_RED</div>
-                <div class="theme-swatch" style="background:#b080ff; color:#000;" onclick="UI.applyGlobalTheme('#b080ff')">GHOST_PURPLE</div>
-            </div>
-            <div style="margin-top:50px; background:rgba(255,255,255,0.01); padding:40px; border:1px solid #111;">
-                <span class="ov-label">MANUAL_HEX_OVERRIDE</span>
-                <input type="color" id="neon-pick" style="width:100%; height:150px; background:none; border:none; cursor:pointer;">
-                <button class="btn" style="margin-top:30px; width:100%; padding:20px;" onclick="UI.applyGlobalTheme(document.getElementById('neon-pick').value)">SYNCHRONIZE THEME</button>
-            </div>
-        </div>
-
-        <div id="ov-wipe" class="ov-sec" style="display:none;">
-            <div style="border:1px solid var(--danger); padding:60px; background:rgba(255,0,60,0.02); text-align:center;">
-                <i class="fas fa-radiation" style="font-size:60px; color:var(--danger); margin-bottom:30px;"></i>
-                <h1 style="color:var(--danger); margin-bottom:20px;">Protocol Zero: Hard Reset</h1>
-                <p style="color:#666; margin-bottom:40px; max-width:600px; margin-left:auto; margin-right:auto;">
-                    Bu işlem Firebase veritabanı üzerindeki tüm kullanıcı verilerini, logları ve sohbet geçmişini geri döndürülemez şekilde silecektir. 
-                    Bellek blokları 0x00 ile overwrite edilecektir.
-                </p>
-                <button class="btn" style="padding:25px 60px; border-color:var(--danger); color:var(--danger); font-size:18px; font-weight:900;" onclick="SystemKernel.executePurge()">EXECUTE TOTAL WIPE</button>
-            </div>
+            <h1 style="margin-bottom:20px;">Encrypted Packet Stream</h1>
+            <div id="spy-logs" style="height:450px; background:#020202; border:1px solid #111; padding:20px; font-size:12px; color:var(--admin-neon); overflow-y:auto; font-family:monospace;"></div>
         </div>
     </div>
 </div>
 
 <footer>
-    <div style="display:flex; gap:25px;">
-        <span id="status-tag" style="color:var(--admin-neon)">● KERNEL_STABLE</span>
-        <span>ENC: AES-512-RSA</span>
-    </div>
     <div style="display:flex; gap:20px;">
-        <span id="env-tag" style="color:var(--primary)">ENV: PYTHON_3.11</span>
-        <span>© 2026 SUPREME_ARCHIVE</span>
+        <span style="color:var(--admin-neon)">● SYSTEM_OPERATIONAL</span>
+        <span>ID: <span id="footer-user">GUEST</span></span>
+    </div>
+    <div style="display:flex; gap:15px;">
+        <span>AES-256 GCM</span>
+        <span style="color:var(--primary)">V48.1.0</span>
     </div>
 </footer>
 
 <script>
 /* ================================================================================
-   SYSTEM KERNEL CORE - V47.10.1
+   CORE SYSTEM SCRIPT - THE ENGINE
    ================================================================================ */
 
-// 1. DATABASE CONFIG
+// 1. FIREBASE BOOT
 const fcfg = { apiKey: "AIzaSyDpaFcKI6XhYuWCiyZHUFey0T6uqKy8IPA", databaseURL: "https://prem-d18e3-default-rtdb.firebaseio.com", projectId: "prem-d18e3" };
 firebase.initializeApp(fcfg);
 const db = firebase.database();
 
-// 2. ACE EDITOR MASTER CONFIG
+// 2. EDITOR SETUP
 const editor = ace.edit("ace-editor");
 editor.setTheme("ace/theme/terminal");
 editor.session.setMode("ace/mode/python");
-ace.require("ace/ext/language_tools");
-editor.setOptions({
-    enableBasicAutocompletion: true,
-    enableLiveAutocompletion: true,
-    enableSnippets: true,
-    showPrintMargin: false,
-    fontSize: "15px",
-    fontFamily: "Fira Code"
-});
+editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true, fontSize: "15px", fontFamily: "Fira Code" });
 
 // 3. VIRTUAL FILE SYSTEM
 const VFS = {
-    'main.py': `class KernelNode:\n    def __init__(self, id):\n        self.id = id\n    def boot(self):\n        print(f"[NODE_{self.id}] Pulse detected at 0x7F")\n\nif __name__ == "__main__":\n    node = KernelNode("ALPHA_9")\n    node.boot()`,
-    'config.json': `{\n  "version": "47.10.1",\n  "clearance": 10,\n  "auto_purge": false\n}`,
-    'schema.sql': `CREATE TABLE system_logs (\n  id UUID PRIMARY KEY,\n  msg TEXT,\n  ts TIMESTAMP\n);`,
-    'firewall.log': `[INFO] Firewall rules updated.\n[WARN] Port 443 scanning detected.`,
-    'kernel.asm': `section .text\n  global _start\n_start:\n  mov eax, 1\n  int 0x80`
+    'main.py': `class Omnipotence:\n    def __init__(self):\n        self.version = 48\n    def boot(self):\n        print(f"System V{self.version} Pulse Detected.")\n\nif __name__ == "__main__":\n    core = Omnipotence()\n    core.boot()`,
+    'database.sql': `CREATE TABLE users (id INT, name TEXT);\nINSERT INTO users VALUES (1, 'Architect');`,
+    'config.json': `{\n  "security": "MAX",\n  "kernel": "v48.1",\n  "auto_fix": true\n}`,
+    'security.log': `[INFO] Unauthorized access blocked from 192.168.1.1\n[WARN] High CPU detected.`
 };
 
-// 4. KERNEL LOGIC ENGINE
+// 4. KERNEL LOGIC
 const SystemKernel = {
-    pyEngine: null, user: "Guest", isRoot: false,
-    
+    py: null, user: "Guest", isRoot: false,
     async boot() {
         this.user = document.getElementById("uid").value || "User_" + Math.floor(Math.random()*999);
         const key = document.getElementById("ukey").value;
@@ -319,95 +236,109 @@ const SystemKernel = {
             document.getElementById("adm-btn").style.display = "block";
         }
         document.getElementById("gate").style.display = "none";
-        this.pyEngine = await loadPyodide();
+        document.getElementById("footer-user").innerText = this.user.toUpperCase();
+        this.py = await loadPyodide();
         editor.setValue(VFS['main.py'], -1);
-        this.startMonitoring();
+        this.startMetrics();
+        this.listenSync();
     },
-
     loadFile(name, el) {
         document.querySelectorAll(".file-item").forEach(i => i.classList.remove("active"));
         el.classList.add("active");
-        editor.setValue(VFS[name] || "// Empty File", -1);
+        editor.setValue(VFS[name], -1);
         const ext = name.split('.').pop();
-        const modeMap = { py: 'python', json: 'json', sql: 'sql', asm: 'assembly_x86' };
-        editor.session.setMode("ace/mode/" + (modeMap[ext] || 'text'));
+        const mode = ext === 'py' ? 'python' : (ext === 'sql' ? 'sql' : 'json');
+        editor.session.setMode("ace/mode/" + mode);
     },
-
-    syncEnvironment() {
-        const lang = document.getElementById("lang-select").value;
-        editor.session.setMode("ace/mode/" + lang);
-        document.getElementById("env-tag").innerText = "ENV: " + lang.toUpperCase();
-    },
-
-    async executePipeline() {
+    async execute() {
         const lang = document.getElementById("lang-select").value;
         UI.toggleTerminal(true);
         const out = document.getElementById("term-body");
-        out.innerHTML = `<div style="color:#555">>>> Executing ${lang}...</div>`;
+        out.innerHTML = `> Initializing ${lang} Runtime...<br>`;
         try {
-            if(lang === "python") {
-                await this.pyEngine.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
-                await this.pyEngine.runPythonAsync(editor.getValue());
-                out.innerText += this.pyEngine.runPython("sys.stdout.getvalue()") || "Finished.";
-            } else if(lang === "javascript") {
+            if(lang === 'python') {
+                await this.py.runPythonAsync(`import sys, io\nsys.stdout = io.StringIO()`);
+                await this.py.runPythonAsync(editor.getValue());
+                out.innerText += this.py.runPython("sys.stdout.getvalue()") || "Finished.";
+            } else if(lang === 'javascript') {
                 eval(editor.getValue());
-                out.innerText += "JS Execution Context: Success.";
-            } else {
-                out.innerText += "Native engine required for this extension.";
+                out.innerText += "Script executed in browser context.";
             }
-        } catch(e) { out.innerHTML += `<div style="color:var(--danger)">[ERR] ${e}</div>`; }
+        } catch(e) { out.innerHTML += `<span style="color:var(--danger)">[RUNTIME_ERROR] ${e}</span>`; }
     },
-
-    startMonitoring() {
+    startMetrics() {
         setInterval(() => {
-            if(this.isRoot) {
-                document.getElementById("cpu-stat").innerText = (4.80 + Math.random()*0.1).toFixed(2) + " GHz";
-                document.querySelectorAll(".v-bar").forEach(b => b.style.height = (20 + Math.random()*80) + "%");
-            }
-        }, 1000);
+            const cpu = (Math.random()*1.5).toFixed(2);
+            if(document.getElementById("cpu-val")) document.getElementById("cpu-val").innerText = cpu + "%";
+        }, 2000);
     },
-
-    executePurge() {
-        if(confirm("TOTAL DATA DESTRUCTION?")) {
-            db.ref("v47_chat").remove();
-            alert("SYSTEM WIPED.");
-        }
+    listenSync() {
+        // Global müdahale dinleyici (Herkes için)
+        db.ref("v48_intervention").on("value", snap => {
+            const data = snap.val();
+            if(!data) return;
+            if(Date.now() - data.t < 5000) {
+                if(data.type === 'GLITCH') {
+                    document.getElementById("master-body").classList.add("glitch-active");
+                    setTimeout(() => document.getElementById("master-body").classList.remove("glitch-active"), 3000);
+                }
+                if(data.type === 'ALERT') {
+                    alert("!!! SYSTEM BROADCAST !!!\n\n" + data.msg);
+                }
+            }
+        });
     }
 };
 
-// 5. UI CONTROLLER
+// 5. OVERLORD MODULE (THE TROLL/ADMIN TOOLS)
+const Overlord = {
+    ghostMessage() {
+        const name = prompt("Ghost User Name:");
+        const msg = prompt("Message:");
+        if(name && msg) db.ref("v48_chat").push({ u: name, m: msg, r: false, t: Date.now() });
+    },
+    systemAlert() {
+        const msg = prompt("Global Alert Message:");
+        if(msg) db.ref("v48_intervention").set({ type: 'ALERT', msg: msg, t: Date.now() });
+    },
+    triggerGlitch() {
+        db.ref("v48_intervention").set({ type: 'GLITCH', t: Date.now() });
+    },
+    purgeDB() {
+        if(confirm("WIPE ALL HISTORY?")) db.ref("v48_chat").remove();
+    }
+};
+
+// 6. UI MASTER
 const UI = {
-    toggleOverlord(s) { document.getElementById("overlord-panel").style.display = s ? "flex" : "none"; },
+    toggleOverlord(s) { document.getElementById("overlord-panel").style.display = s ? "grid" : "none"; },
     toggleTerminal(s) { document.getElementById("terminal-drawer").style.display = s ? "flex" : "none"; },
-    switchAdminTab(tab, el) {
+    switchTab(id, el) {
         document.querySelectorAll(".ov-sec").forEach(s => s.style.display = "none");
         document.querySelectorAll(".ov-tab").forEach(t => t.classList.remove("active"));
-        document.getElementById("ov-" + tab).style.display = "block";
+        document.getElementById("ov-" + id).style.display = "block";
         el.classList.add("active");
     },
-    applyGlobalTheme(color) {
-        document.documentElement.style.setProperty('--primary', color);
-        console.log("[THEME] Synced to " + color);
-    }
+    toggleModal(id) { alert("Omnipotence V48: Guide is being updated via Cloud."); }
 };
 
-// 6. COMMS ENGINE
+// 7. CHAT SYSTEM
 document.getElementById("chat-input").onkeypress = (e) => {
-    if(e.key === "Enter") {
-        db.ref("v47_chat").push({ u: SystemKernel.user, m: e.target.value, r: SystemKernel.isRoot, t: Date.now() });
+    if(e.key === "Enter" && e.target.value.trim()) {
+        db.ref("v48_chat").push({ u: SystemKernel.user, m: e.target.value, r: SystemKernel.isRoot, t: Date.now() });
         e.target.value = "";
     }
 };
 
-db.ref("v47_chat").limitToLast(25).on("value", snap => {
+db.ref("v48_chat").limitToLast(30).on("value", snap => {
     const box = document.getElementById("global-chat");
     const spy = document.getElementById("spy-logs");
     box.innerHTML = "";
-    snap.forEach(c => {
-        const v = c.val();
+    snap.forEach(d => {
+        const v = d.val();
         const color = v.r ? "var(--admin-neon)" : "var(--primary)";
         box.innerHTML += `<div><b style="color:${color}">${v.u}:</b> ${v.m}</div>`;
-        if(SystemKernel.isRoot && spy) spy.innerHTML = `[INTERCEPTED] ${new Date(v.t).toLocaleTimeString()} | ${v.u} >> ${v.m}\n` + spy.innerHTML;
+        if(SystemKernel.isRoot && spy) spy.innerHTML = `[RAW_PACKET] ${v.u} >> ${v.m}\n` + spy.innerHTML;
     });
     box.scrollTop = box.scrollHeight;
 });
@@ -418,13 +349,12 @@ document.getElementById("ai-input").onkeypress = (e) => {
         const out = document.getElementById("ai-logs");
         out.innerHTML += `<div style="color:#fff">> ${e.target.value}</div>`;
         setTimeout(() => {
-            out.innerHTML += `<div style="color:var(--ai)">[GHOST_AI] Analysis complete. Integrity 100%. Efficiency optimal.</div>`;
+            out.innerHTML += `<div style="color:var(--ai)">[GHOST_V48] Analysis: No breaches. Logic flow is O(1). You are optimal.</div>`;
             out.scrollTop = out.scrollHeight;
-        }, 1000);
+        }, 800);
         e.target.value = "";
     }
 };
-
 </script>
 </body>
 </html>
